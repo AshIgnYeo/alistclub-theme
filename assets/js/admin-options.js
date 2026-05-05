@@ -2,6 +2,29 @@
 (function ($) {
 	'use strict';
 
+	/* ---------------------------------------------------------- *
+	 * Sidebar nav — scrollspy + smooth scroll
+	 * ---------------------------------------------------------- */
+	const $navLinks = $('.alistclub-nav-link');
+	if ($navLinks.length) {
+		const sections = $navLinks.toArray().map((a) => {
+			const id = a.getAttribute('href');
+			return id && id.charAt(0) === '#' ? document.querySelector(id) : null;
+		}).filter(Boolean);
+
+		if ('IntersectionObserver' in window && sections.length) {
+			const observer = new IntersectionObserver((entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						$navLinks.removeClass('is-active');
+						$navLinks.filter('[href="#' + entry.target.id + '"]').addClass('is-active');
+					}
+				});
+			}, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+			sections.forEach((s) => observer.observe(s));
+		}
+	}
+
 	const $list   = $('#alistclub-banner-list');
 	const $tpl    = $('#alistclub-banner-template');
 	const $addBtn = $('#alistclub-add-banner');
@@ -87,4 +110,43 @@
 		$field.find('.alistclub-image-preview').removeClass('has-image').empty();
 		$(this).hide();
 	});
+
+	/* ---------------------------------------------------------- *
+	 * Flash Notice button repeater
+	 * ---------------------------------------------------------- */
+	const $flashList   = $('#alistclub-flash-button-list');
+	const $flashTpl    = $('#alistclub-flash-button-template');
+	const $flashAddBtn = $('#alistclub-add-flash-button');
+
+	if ($flashList.length) {
+		function reindexFlash() {
+			$flashList.children('.alistclub-flash-button-row').each(function (newIdx) {
+				$(this).attr('data-index', newIdx);
+				$(this).find('input, select, textarea').each(function () {
+					const name = $(this).attr('name');
+					if (!name) return;
+					$(this).attr('name', name.replace(/\[flash_buttons\]\[[^\]]+\]/, '[flash_buttons][' + newIdx + ']'));
+				});
+			});
+		}
+
+		$flashList.sortable({
+			handle: '.alistclub-banner-handle',
+			placeholder: 'alistclub-flash-button-row alistclub-placeholder',
+			forcePlaceholderSize: true,
+			update: reindexFlash,
+		});
+
+		$flashAddBtn.on('click', function () {
+			const idx = $flashList.children('.alistclub-flash-button-row').length;
+			const html = $flashTpl.html().replace(/__INDEX__/g, idx);
+			$flashList.append(html);
+		});
+
+		$flashList.on('click', '.alistclub-flash-button-delete', function () {
+			if (!window.confirm(alistclubOptions.confirmRemoveButton)) return;
+			$(this).closest('.alistclub-flash-button-row').remove();
+			reindexFlash();
+		});
+	}
 })(jQuery);

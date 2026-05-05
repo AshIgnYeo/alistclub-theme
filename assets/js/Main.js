@@ -191,6 +191,84 @@
 	}
 
 	/**
+	 * Flash Notice modal — shows a configurable popup until dismissed.
+	 * Cookie value = content version, so editing the message re-shows it.
+	 */
+	const FLASH_COOKIE = 'alistclub_flash_dismissed';
+
+	function readCookie(name) {
+		const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[$()*+./?[\\\]^{|}]/g, '\\$&') + '=([^;]*)'));
+		return match ? decodeURIComponent(match[1]) : '';
+	}
+
+	function writeCookie(name, value, days) {
+		const parts = [name + '=' + encodeURIComponent(value), 'path=/', 'SameSite=Lax'];
+		if (days > 0) {
+			const d = new Date();
+			d.setTime(d.getTime() + days * 86400000);
+			parts.push('expires=' + d.toUTCString());
+		}
+		document.cookie = parts.join('; ');
+	}
+
+	class FlashNotice {
+		constructor() {
+			this.overlay = $('#flash-notice');
+			this.configEl = $('#flash-notice-config');
+			if (!this.overlay || !this.configEl) return;
+
+			try {
+				this.config = JSON.parse(this.configEl.textContent || '{}');
+			} catch (e) {
+				return;
+			}
+			if (!this.config || !this.config.version) return;
+			if (readCookie(FLASH_COOKIE) === this.config.version) return;
+
+			this.closeBtn = $('#flash-notice-close', this.overlay);
+			this.lastFocus = null;
+			this.bind();
+			setTimeout(() => this.open(), 400);
+		}
+
+		bind() {
+			if (this.closeBtn) {
+				this.closeBtn.addEventListener('click', () => this.dismiss());
+			}
+			this.overlay.addEventListener('click', (e) => {
+				if (e.target === this.overlay) this.dismiss();
+			});
+			document.addEventListener('keyup', (e) => {
+				if (e.key === 'Escape' && this.isOpen()) this.dismiss();
+			});
+			$$('[data-flash-action]', this.overlay).forEach((btn) => {
+				btn.addEventListener('click', () => this.dismiss());
+			});
+		}
+
+		isOpen() { return this.overlay.classList.contains('is-open'); }
+
+		open() {
+			this.lastFocus = document.activeElement;
+			this.overlay.classList.add('is-open');
+			this.overlay.setAttribute('aria-hidden', 'false');
+			document.body.classList.add('lock');
+			if (this.closeBtn) setTimeout(() => this.closeBtn.focus(), 50);
+		}
+
+		dismiss() {
+			this.overlay.classList.remove('is-open');
+			this.overlay.setAttribute('aria-hidden', 'true');
+			document.body.classList.remove('lock');
+			const days = this.config.showOnce ? 365 : (parseInt(this.config.cookieDays, 10) || 0);
+			writeCookie(FLASH_COOKIE, this.config.version, days);
+			if (this.lastFocus && typeof this.lastFocus.focus === 'function') {
+				this.lastFocus.focus();
+			}
+		}
+	}
+
+	/**
 	 * Optional WooCommerce gift-card extras.
 	 * Only runs when the gift-card options table is present.
 	 */
@@ -301,6 +379,7 @@
 		initSubmenuTap();
 		initBanners();
 		new Search();
+		new FlashNotice();
 		initWCExtras();
 	}
 
