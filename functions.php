@@ -115,6 +115,11 @@ require get_theme_file_path( '/inc/search-route.php' );
 require get_theme_file_path( '/inc/theme-options.php' );
 
 /**
+ * FAQ custom post type.
+ */
+require get_theme_file_path( '/inc/cpt-faq.php' );
+
+/**
  * Redirect users to homepage after logout.
  */
 function alistclub_redirect_after_logout() {

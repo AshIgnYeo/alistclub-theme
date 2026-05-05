@@ -9,8 +9,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-const ALISTCLUB_OPTIONS_KEY  = 'alistclub_theme_options';
-const ALISTCLUB_OPTIONS_PAGE = 'alistclub-theme-options';
+const ALISTCLUB_OPTIONS_KEY   = 'alistclub_theme_options';
+const ALISTCLUB_MENU_SLUG     = 'alistclub';
+const ALISTCLUB_BANNERS_PAGE  = 'alistclub';            // first submenu (overrides default duplicate)
+const ALISTCLUB_SETTINGS_PAGE = 'alistclub-settings';
 
 /**
  * Default options.
@@ -93,18 +95,47 @@ function alistclub_get_banner_settings() {
 }
 
 /**
- * Register admin menu.
+ * Register top-level "A-List Club" admin menu and Banners submenu.
+ * Runs at priority 9 so the FAQ CPT (added by core at priority 10) appears
+ * between Banners and Settings.
  */
-function alistclub_register_options_menu() {
-	add_theme_page(
-		__( 'Theme Options', 'alistclub' ),
-		__( 'Theme Options', 'alistclub' ),
+function alistclub_register_menu_early() {
+	add_menu_page(
+		__( 'A-List Club', 'alistclub' ),
+		__( 'A-List Club', 'alistclub' ),
 		'edit_theme_options',
-		ALISTCLUB_OPTIONS_PAGE,
-		'alistclub_render_options_page'
+		ALISTCLUB_MENU_SLUG,
+		'alistclub_render_banners_page',
+		'dashicons-star-filled',
+		58
+	);
+
+	// Override the auto-generated first submenu name from "A-List Club" to "Banners".
+	add_submenu_page(
+		ALISTCLUB_MENU_SLUG,
+		__( 'Homepage Banners', 'alistclub' ),
+		__( 'Banners', 'alistclub' ),
+		'edit_theme_options',
+		ALISTCLUB_BANNERS_PAGE,
+		'alistclub_render_banners_page'
 	);
 }
-add_action( 'admin_menu', 'alistclub_register_options_menu' );
+add_action( 'admin_menu', 'alistclub_register_menu_early', 9 );
+
+/**
+ * Register the Settings submenu after the FAQ CPT submenus have been added.
+ */
+function alistclub_register_settings_submenu() {
+	add_submenu_page(
+		ALISTCLUB_MENU_SLUG,
+		__( 'A-List Club Settings', 'alistclub' ),
+		__( 'Settings', 'alistclub' ),
+		'edit_theme_options',
+		ALISTCLUB_SETTINGS_PAGE,
+		'alistclub_render_settings_page'
+	);
+}
+add_action( 'admin_menu', 'alistclub_register_settings_submenu', 11 );
 
 /**
  * Register the setting + sanitizer.
@@ -123,11 +154,32 @@ function alistclub_register_settings() {
 add_action( 'admin_init', 'alistclub_register_settings' );
 
 /**
- * Sanitize submitted options.
+ * Sanitize submitted options. Section-aware: each form posts a hidden
+ * `_section` value (banners|settings) so we only touch fields that belong
+ * to the page being saved, leaving the other section untouched.
  */
 function alistclub_sanitize_options( $input ) {
-	$out = alistclub_default_options();
+	$saved = get_option( ALISTCLUB_OPTIONS_KEY, array() );
+	if ( ! is_array( $saved ) ) {
+		$saved = array();
+	}
+	$out = array_merge( alistclub_default_options(), $saved );
 
+	$section = isset( $input['_section'] ) ? (string) $input['_section'] : '';
+
+	if ( 'banners' === $section ) {
+		alistclub_sanitize_banners_section( $input, $out );
+	} elseif ( 'settings' === $section ) {
+		alistclub_sanitize_settings_section( $input, $out );
+	}
+
+	return $out;
+}
+
+/**
+ * Sanitize the Banners section.
+ */
+function alistclub_sanitize_banners_section( $input, &$out ) {
 	$out['banner_autoplay'] = ! empty( $input['banner_autoplay'] ) ? 1 : 0;
 	$out['banner_interval'] = isset( $input['banner_interval'] ) ? max( 2, min( 30, (int) $input['banner_interval'] ) ) : 5;
 
@@ -153,8 +205,12 @@ function alistclub_sanitize_options( $input ) {
 		}
 	}
 	$out['banners'] = $banners;
+}
 
-	// Flash Notice.
+/**
+ * Sanitize the Settings (Flash Notice) section.
+ */
+function alistclub_sanitize_settings_section( $input, &$out ) {
 	$out['flash_enabled']     = ! empty( $input['flash_enabled'] ) ? 1 : 0;
 	$out['flash_show_once']   = ! empty( $input['flash_show_once'] ) ? 1 : 0;
 	$out['flash_cookie_days'] = isset( $input['flash_cookie_days'] ) ? max( 0, min( 365, (int) $input['flash_cookie_days'] ) ) : 7;
@@ -183,15 +239,15 @@ function alistclub_sanitize_options( $input ) {
 		}
 	}
 	$out['flash_buttons'] = $buttons;
-
-	return $out;
 }
 
 /**
  * Enqueue admin assets only on our options page.
  */
 function alistclub_options_admin_assets( $hook ) {
-	if ( 'appearance_page_' . ALISTCLUB_OPTIONS_PAGE !== $hook ) {
+	$is_banners_page  = ( 'toplevel_page_' . ALISTCLUB_MENU_SLUG === $hook );
+	$is_settings_page = ( ALISTCLUB_MENU_SLUG . '_page_' . ALISTCLUB_SETTINGS_PAGE === $hook );
+	if ( ! $is_banners_page && ! $is_settings_page ) {
 		return;
 	}
 	wp_enqueue_media();
@@ -220,9 +276,9 @@ function alistclub_options_admin_assets( $hook ) {
 add_action( 'admin_enqueue_scripts', 'alistclub_options_admin_assets' );
 
 /**
- * Render the options page.
+ * Render the Banners page.
  */
-function alistclub_render_options_page() {
+function alistclub_render_banners_page() {
 	if ( ! current_user_can( 'edit_theme_options' ) ) {
 		return;
 	}
@@ -230,18 +286,11 @@ function alistclub_render_options_page() {
 	$banners = is_array( $opts['banners'] ) ? $opts['banners'] : array();
 	?>
 	<div class="wrap alistclub-options">
-		<h1><?php esc_html_e( 'A-List Theme Options', 'alistclub' ); ?></h1>
-		<form method="post" action="options.php" class="alistclub-options__layout">
+		<h1><?php esc_html_e( 'Homepage Banners', 'alistclub' ); ?></h1>
+		<form method="post" action="options.php">
 			<?php settings_fields( 'alistclub_options_group' ); ?>
+			<input type="hidden" name="<?php echo esc_attr( ALISTCLUB_OPTIONS_KEY ); ?>[_section]" value="banners">
 
-			<nav class="alistclub-options__nav" aria-label="<?php esc_attr_e( 'Theme options sections', 'alistclub' ); ?>">
-				<ul>
-					<li><a href="#section-banners" class="alistclub-nav-link is-active"><span class="dashicons dashicons-images-alt2" aria-hidden="true"></span><?php esc_html_e( 'Homepage Banner', 'alistclub' ); ?></a></li>
-					<li><a href="#section-flash" class="alistclub-nav-link"><span class="dashicons dashicons-megaphone" aria-hidden="true"></span><?php esc_html_e( 'Flash Notice', 'alistclub' ); ?></a></li>
-				</ul>
-			</nav>
-
-			<div class="alistclub-options__content">
 			<section id="section-banners" class="alistclub-section" aria-labelledby="alistclub-banner-section-title">
 				<header class="alistclub-section__header">
 					<h2 id="alistclub-banner-section-title" class="alistclub-section__title">
@@ -308,10 +357,30 @@ function alistclub_render_options_page() {
 				</div>
 			</section>
 
+			<?php submit_button(); ?>
+		</form>
+	</div>
+	<?php
+}
+
+/**
+ * Render the Settings page (currently: Flash Notice).
+ */
+function alistclub_render_settings_page() {
+	if ( ! current_user_can( 'edit_theme_options' ) ) {
+		return;
+	}
+	$opts = alistclub_get_options();
+	?>
+	<div class="wrap alistclub-options">
+		<h1><?php esc_html_e( 'A-List Club Settings', 'alistclub' ); ?></h1>
+		<form method="post" action="options.php">
+			<?php settings_fields( 'alistclub_options_group' ); ?>
+			<input type="hidden" name="<?php echo esc_attr( ALISTCLUB_OPTIONS_KEY ); ?>[_section]" value="settings">
+
 			<?php alistclub_render_flash_notice_section( $opts ); ?>
 
 			<?php submit_button(); ?>
-			</div>
 		</form>
 	</div>
 	<?php
