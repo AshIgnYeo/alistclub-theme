@@ -1,16 +1,22 @@
 <?php
+$is_account = function_exists( 'is_account_page' ) && is_account_page();
+$main_class = $is_account ? 'is-account' : '';
+
 get_header();
 get_template_part( 'template-parts/section', 'nav' );
-get_template_part( 'template-parts/section', 'banner' );
+if ( ! $is_account ) {
+	get_template_part( 'template-parts/section', 'banner' );
+}
 ?>
-
-<main id="page-content" tabindex="-1">
+<main id="page-content" tabindex="-1" class="<?php echo esc_attr( $main_class ); ?>">
 	<div class="container">
 		<div class="row">
-			<div class="col-left">
-				<?php get_sidebar(); ?>
-			</div>
-			<div class="col-right">
+			<?php if ( ! $is_account ) : ?>
+				<div class="col-left">
+					<?php get_sidebar(); ?>
+				</div>
+			<?php endif; ?>
+			<div class="<?php echo $is_account ? 'col-full' : 'col-right'; ?>">
 				<?php
 				$content_type = get_post_field( 'post_name', get_the_ID() );
 				$slug_part    = sanitize_file_name( $content_type );
