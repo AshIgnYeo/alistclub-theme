@@ -1,0 +1,20 @@
+/*
+=== FORMS SCSS FILE ===
+Type: Module
+Author: AshIgn
+Description: Styles for form elements, i.e. input types, labels etc
+*/
+form.form-default {
+	width: 100%;
+}
+.input-group {
+	margin-top: 10px;
+	position: relative;
+
+	input[type="text"].form-input {
+		width: 100%;
+		border: 1px solid #c3c3c3;
+		padding: 8px;
+		font-size: 1rem;
+	}
+}

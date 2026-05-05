@@ -1,0 +1,67 @@
+/*
+=== NAVIGATION SCSS FILE ===
+Type: Site Specific
+Author: AshIgn
+Description: Main header navigation styles
+*/
+nav#main-nav {
+	background-color: #000;
+	color: #fff;
+	position: relative;
+	z-index: 9999;
+
+	.nav__logo-wrapper {
+		width: 100%;
+
+		@include desktop {
+			width: 20%;
+		}
+
+		img {
+			max-width: 150px;
+			padding: 8px;
+		}
+	}
+
+	.nav__main-wrapper {
+		width: 100%;
+		margin: 5px 0;
+
+		@include tablet {
+			width: 50%;
+		}
+
+		@include desktop {
+			width: 50%;
+			margin: 0;
+			align-self: flex-end;
+		}
+	}
+
+	.nav__account-wrapper {
+		width: 100%;
+		margin: 5px 0;
+
+		@include tablet {
+			width: 50%;
+		}
+
+		@include desktop {
+			width: 30%;
+			margin: 0;
+			align-self: flex-end;
+		}
+	}
+
+	.list-item.nav-link {
+		background-image: linear-gradient(#fff, #fff);
+		background-repeat: no-repeat;
+		background-position: center bottom;
+		background-size: 0% 2px;
+		transition: background-size 0.2s ease;
+
+		&:hover {
+			background-size: 100% 2px;
+		}
+	}
+}

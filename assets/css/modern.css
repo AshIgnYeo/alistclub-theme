@@ -1,0 +1,364 @@
+/*!
+ * A-List Club — modern enhancements layer.
+ * Loaded after style.css. Adds design tokens, focus styles,
+ * mobile-friendly nav, and accessibility improvements.
+ */
+
+:root {
+	--ac-color-bg: #f6f6f6;
+	--ac-color-fg: #000;
+	--ac-color-fg-inverse: #fff;
+	--ac-color-muted: #a0a0a0;
+	--ac-color-border: #cecece;
+	--ac-color-accent: #22a30f;
+	--ac-color-accent-hover: #187d0d;
+	--ac-color-danger: #db5151;
+	--ac-color-surface: #fff;
+	--ac-color-surface-alt: #efefef;
+
+	--ac-font: Roboto, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+	--ac-fs-body: clamp(0.95rem, 0.9rem + 0.2vw, 1.0625rem);
+	--ac-fs-h1: clamp(2rem, 1.4rem + 2.5vw, 3rem);
+	--ac-fs-h2: clamp(1.5rem, 1.1rem + 1.4vw, 2rem);
+	--ac-fs-h3: clamp(1.2rem, 1rem + 0.6vw, 1.5rem);
+
+	--ac-space-xs: 0.25rem;
+	--ac-space-sm: 0.5rem;
+	--ac-space-md: 1rem;
+	--ac-space-lg: 1.5rem;
+	--ac-space-xl: 2.5rem;
+
+	--ac-radius: 6px;
+	--ac-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+	--ac-transition: 0.2s ease;
+
+	--ac-tap-target: 44px;
+}
+
+/* ----------------------------------- *
+ * Accessibility
+ * ----------------------------------- */
+.skip-link {
+	position: absolute;
+	top: -100px;
+	left: 0;
+	background: var(--ac-color-fg);
+	color: var(--ac-color-fg-inverse);
+	padding: var(--ac-space-sm) var(--ac-space-md);
+	z-index: 100000;
+	text-decoration: none;
+}
+.skip-link:focus {
+	top: 0;
+}
+
+.screen-reader-text {
+	position: absolute !important;
+	clip: rect(1px, 1px, 1px, 1px);
+	width: 1px; height: 1px;
+	overflow: hidden;
+}
+.screen-reader-text:focus {
+	clip: auto;
+	width: auto; height: auto;
+	background: var(--ac-color-fg);
+	color: var(--ac-color-fg-inverse);
+	padding: var(--ac-space-sm) var(--ac-space-md);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+	outline: 2px solid var(--ac-color-fg);
+	outline-offset: 2px;
+}
+
+nav#main-nav a:focus-visible,
+nav#main-nav button:focus-visible {
+	outline-color: var(--ac-color-fg-inverse);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*, *::before, *::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+/* ----------------------------------- *
+ * Touch target minimums
+ * ----------------------------------- */
+nav#main-nav a,
+nav#main-nav button,
+section#footer a,
+.category-menu-section ul li a {
+	min-height: var(--ac-tap-target);
+	display: inline-flex;
+	align-items: center;
+}
+
+/* ----------------------------------- *
+ * Mobile navigation toggle
+ * ----------------------------------- */
+.nav__toggle {
+	display: inline-flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 5px;
+	width: 44px;
+	height: 44px;
+	padding: 10px;
+	margin-left: auto;
+	background: transparent;
+	border: 0;
+	cursor: pointer;
+}
+.nav__toggle-bar {
+	display: block;
+	width: 100%;
+	height: 2px;
+	background: var(--ac-color-fg-inverse);
+	transition: transform var(--ac-transition), opacity var(--ac-transition);
+}
+.nav__toggle[aria-expanded="true"] .nav__toggle-bar:nth-child(1) {
+	transform: translateY(7px) rotate(45deg);
+}
+.nav__toggle[aria-expanded="true"] .nav__toggle-bar:nth-child(2) {
+	opacity: 0;
+}
+.nav__toggle[aria-expanded="true"] .nav__toggle-bar:nth-child(3) {
+	transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (max-width: 999px) {
+	nav#main-nav .nav__main-wrapper {
+		display: none;
+	}
+	nav#main-nav .nav__main-wrapper.is-open {
+		display: block;
+		width: 100%;
+	}
+	nav#main-nav .nav__main-wrapper.is-open ul.link-list.list-row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+	nav#main-nav .nav__main-wrapper.is-open ul.link-list.list-row li {
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
+}
+@media (min-width: 1000px) {
+	.nav__toggle { display: none; }
+}
+
+/* ----------------------------------- *
+ * Touch-device submenu
+ * ----------------------------------- */
+@media (hover: none) {
+	ul.link-list li.list-item ul.sub-menu { display: none; }
+	ul.link-list li.list-item.submenu-open ul.sub-menu { display: block; }
+	ul.link-list li.list-item:hover ul.sub-menu { display: none; }
+	ul.link-list li.list-item.submenu-open:hover ul.sub-menu { display: block; }
+}
+
+/* ----------------------------------- *
+ * Fluid container
+ * ----------------------------------- */
+.container {
+	width: min(100% - 2rem, 1200px);
+	margin-inline: auto;
+}
+
+/* ----------------------------------- *
+ * Search overlay (modal)
+ * ----------------------------------- */
+section#search {
+	display: none;
+}
+section#search.is-open {
+	display: block;
+}
+section#search button#close-search-overlay {
+	background: transparent;
+	border: 0;
+	color: var(--ac-color-fg-inverse);
+	cursor: pointer;
+}
+section#search button#close-search-overlay:hover,
+section#search button#close-search-overlay:focus-visible {
+	color: var(--ac-color-danger);
+}
+section#search input#search-input {
+	min-height: var(--ac-tap-target);
+}
+
+/* ----------------------------------- *
+ * Images — responsive defaults
+ * ----------------------------------- */
+img {
+	height: auto;
+	max-width: 100%;
+}
+
+/* ----------------------------------- *
+ * Buttons — modern hover/active
+ * ----------------------------------- */
+.btn,
+button {
+	min-height: var(--ac-tap-target);
+}
+.btn:focus-visible {
+	outline: 2px solid var(--ac-color-fg);
+	outline-offset: 2px;
+}
+
+/* ----------------------------------- *
+ * WC products grid — fluid
+ * ----------------------------------- */
+@media (max-width: 600px) {
+	section#store-area .store__products-wrapper #store__products .product-item {
+		flex-basis: 100%;
+		margin: 0 0 var(--ac-space-md) 0;
+	}
+}
+@media (min-width: 601px) and (max-width: 999px) {
+	section#store-area .store__products-wrapper #store__products .product-item {
+		flex-basis: 48%;
+	}
+}
+
+/* ----------------------------------- *
+ * Product cards — modern hover
+ * ----------------------------------- */
+.woocommerce ul.products li.product:hover {
+	box-shadow: var(--ac-shadow-md);
+}
+
+/* ----------------------------------- *
+ * Homepage banner carousel
+ * ----------------------------------- */
+.banner-carousel {
+	position: relative;
+	overflow: hidden;
+	background: var(--ac-color-fg);
+	max-height: 50vh;
+}
+.banner-carousel__track {
+	position: relative;
+	width: 100%;
+	aspect-ratio: 8 / 3;
+}
+@media (max-width: 739px) {
+	.banner-carousel__track { aspect-ratio: 4 / 3; }
+}
+.banner-carousel__slide {
+	position: absolute;
+	inset: 0;
+	opacity: 0;
+	transition: opacity 0.6s ease;
+	pointer-events: none;
+}
+.banner-carousel__slide.is-active {
+	opacity: 1;
+	pointer-events: auto;
+}
+.banner-carousel__slide picture,
+.banner-carousel__slide img,
+.banner-carousel__link {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+.banner-carousel__slide img {
+	object-fit: cover;
+}
+.banner-carousel__link {
+	text-decoration: none;
+	color: inherit;
+	position: relative;
+}
+.banner-carousel__caption {
+	position: absolute;
+	left: 5%;
+	bottom: 8%;
+	max-width: 90%;
+	color: var(--ac-color-fg-inverse);
+	text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+.banner-carousel__heading {
+	margin: 0;
+	font-size: var(--ac-fs-h2);
+	font-weight: 700;
+}
+.banner-carousel__subheading {
+	margin: 0.25rem 0 0;
+	font-size: var(--ac-fs-body);
+}
+.banner-carousel__nav {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	border: 0;
+	background: rgba(0,0,0,0.45);
+	color: var(--ac-color-fg-inverse);
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	transition: background var(--ac-transition);
+}
+.banner-carousel__nav:hover,
+.banner-carousel__nav:focus-visible {
+	background: rgba(0,0,0,0.75);
+}
+.banner-carousel__prev { left: 1rem; }
+.banner-carousel__next { right: 1rem; }
+.banner-carousel__dots {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0.75rem;
+	display: flex;
+	justify-content: center;
+	gap: 0.5rem;
+	z-index: 2;
+}
+.banner-carousel__dot {
+	width: 12px;
+	height: 12px;
+	min-height: 0;
+	min-width: 0;
+	padding: 0;
+	box-sizing: content-box;
+	border-radius: 50%;
+	border: 2px solid var(--ac-color-fg-inverse);
+	background: transparent;
+	cursor: pointer;
+	transition: background var(--ac-transition);
+	flex: 0 0 auto;
+}
+.banner-carousel__dot.is-active,
+.banner-carousel__dot:hover {
+	background: var(--ac-color-fg-inverse);
+}
+@media (max-width: 600px) {
+	.banner-carousel__nav { display: none; }
+	.banner-carousel__caption { bottom: 1.5rem; }
+}
+
+/* ----------------------------------- *
+ * Forms
+ * ----------------------------------- */
+input, select, textarea, button {
+	font: inherit;
+}
+input[type="text"], input[type="search"], input[type="email"], textarea {
+	min-height: var(--ac-tap-target);
+}

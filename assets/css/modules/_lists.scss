@@ -1,0 +1,68 @@
+/*
+=== LISTS SCSS FILE ===
+Type: Module
+Author: AshIgn
+Description: Module file that controls styling of all lists. ul, ol, li
+*/
+ul.link-list {
+  list-style-type: none;
+
+  &.list-inverse-color {
+    .list-item {
+      a {
+        color: #fff;
+      }
+    }
+  }
+
+  &.list-row {
+    @extend #flex-center;
+
+    li.list-item {
+      a {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+    }
+  }
+
+  li.list-item {
+    position: relative;
+
+    a {
+      color: #000;
+      text-decoration: none;
+      display: block;
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+
+    ul.sub-menu {
+      position: absolute;
+      background-color: #000;
+      list-style-type: none;
+      left: 0;
+      display: none;
+
+      li.list-item.nav-link {
+        border-bottom: 1px solid #fff;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background-size: 0 !important;
+          background-color: $darkGrey;
+
+          a {
+            color: #000;
+          }
+        }
+      }
+    }
+
+    &:hover {
+      ul.sub-menu {
+        display: block;
+      }
+    }
+  }
+}

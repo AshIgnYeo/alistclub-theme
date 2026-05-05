@@ -1,0 +1,31 @@
+/*!
+Theme Name: A-List Club
+Author: AshIgn
+Author URI: https://ashleyignatius.com
+Description: Custom Theme for Alistclub
+Version: 1.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/lice 
+*/
+
+//=== FRAMWORK ===*//
+@import "framework/variables";
+@import "framework/mixins";
+@import "framework/extends";
+@import "framework/framework";
+
+//=== MODULES ===//
+@import "modules/buttons";
+@import "modules/lists";
+@import "modules/forms";
+@import "modules/editor";
+
+//=== SITE SPECIFIC ===//
+@import "site/nav";
+@import "site/homepage";
+@import "site/faq";
+@import "site/sidebar";
+@import "site/search";
+@import "site/footer";
+@import "site/login";
+@import "site/plugins_override";

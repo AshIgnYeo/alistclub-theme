@@ -1,0 +1,29 @@
+/*
+=== BUTTONS SCSS FILE ===
+Type: Module
+Author: AshIgn
+Description: Module file that controls styling of all buttons
+*/
+.btn {
+  cursor: pointer;
+  margin: 10px 0;
+  transition: all 0.2s ease-in-out;
+  font-size: 1rem;
+
+  &.btn-default {
+    @extend #btn-default;
+
+    &.btn-outline {
+      background-color: #fff;
+      color: #000;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  a {
+    color: #fff;
+    text-decoration: none;
+  }
+}

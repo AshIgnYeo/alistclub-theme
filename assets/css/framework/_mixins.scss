@@ -1,0 +1,25 @@
+/*
+=== MIXINS SCSS FILE ===
+Type: Framework
+Author: AshIgn
+Description: Mixins used within other scss files
+*/
+
+//*************************************************************************************/
+// MEDIA QUERIES
+//*************************************************************************************/
+@mixin tablet {
+	@media screen and (min-width: #{$containerWidthTablet + $additionalBreakpointWidth}px) {
+		@content;
+	}
+}
+@mixin desktop {
+	@media screen and (min-width: #{$containerWidthDesktop + $additionalBreakpointWidth}px) {
+		@content;
+	}
+}
+@mixin large {
+	@media screen and (min-width: #{$containerWidthLarge + $additionalBreakpointWidth}px) {
+		@content;
+	}
+}

@@ -1,0 +1,191 @@
+/*!
+ * A-List Theme Options — admin styles.
+ */
+
+.alistclub-options .alistclub-banner-list {
+	max-width: 900px;
+}
+
+/* ----------------------------------- *
+ * Section wrapper
+ * ----------------------------------- */
+.alistclub-section {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	max-width: 980px;
+	margin: 20px 0;
+	overflow: hidden;
+}
+
+.alistclub-section__header {
+	padding: 18px 24px;
+	background: linear-gradient(180deg, #f6f7f7 0%, #fff 100%);
+	border-bottom: 1px solid #dcdcde;
+}
+
+.alistclub-section__title {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: #1d2327;
+}
+
+.alistclub-section__title .dashicons {
+	color: #2271b1;
+	font-size: 22px;
+	width: 22px;
+	height: 22px;
+}
+
+.alistclub-section__description {
+	margin: 8px 0 0;
+	color: #50575e;
+	font-size: 13px;
+	max-width: 70ch;
+}
+
+.alistclub-section__body {
+	padding: 12px 24px 24px;
+}
+
+.alistclub-section__group {
+	padding: 16px 0;
+	border-top: 1px solid #f0f0f1;
+}
+
+.alistclub-section__group:first-child {
+	border-top: 0;
+	padding-top: 8px;
+}
+
+.alistclub-section__group-title {
+	margin: 0 0 8px;
+	font-size: 14px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #50575e;
+}
+
+.alistclub-section__add {
+	margin-top: 12px;
+}
+
+.alistclub-section__add .button .dashicons {
+	margin-top: 3px;
+	margin-right: 4px;
+}
+
+@media (max-width: 782px) {
+	.alistclub-section__header,
+	.alistclub-section__body {
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+}
+
+.alistclub-banner-row {
+	display: grid;
+	grid-template-columns: 28px 240px 1fr auto;
+	gap: 16px;
+	align-items: start;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 16px;
+	margin-bottom: 12px;
+	box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+.alistclub-banner-row.alistclub-placeholder {
+	background: #f0f6fc;
+	border-style: dashed;
+	min-height: 200px;
+}
+
+.alistclub-banner-handle {
+	cursor: grab;
+	user-select: none;
+	font-size: 20px;
+	color: #8c8f94;
+	padding: 4px 0;
+	text-align: center;
+}
+.alistclub-banner-handle:active { cursor: grabbing; }
+
+.alistclub-banner-media {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.alistclub-image-field label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 6px;
+}
+
+.alistclub-image-preview {
+	width: 100%;
+	min-height: 90px;
+	background: #f6f7f7;
+	border: 1px dashed #c3c4c7;
+	border-radius: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 6px;
+	overflow: hidden;
+}
+.alistclub-image-preview.has-image {
+	border-style: solid;
+	background: #000;
+}
+.alistclub-image-preview img {
+	max-width: 100%;
+	max-height: 120px;
+	display: block;
+}
+
+.alistclub-banner-fields p {
+	margin: 0 0 10px;
+}
+.alistclub-banner-fields label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 4px;
+}
+.alistclub-banner-fields input[type="text"],
+.alistclub-banner-fields input[type="url"],
+.alistclub-banner-fields select {
+	width: 100%;
+	max-width: 420px;
+}
+
+.alistclub-banner-actions {
+	align-self: start;
+}
+.button-link-delete.alistclub-banner-delete {
+	color: #b32d2e;
+	cursor: pointer;
+	background: none;
+	border: 0;
+	padding: 4px 8px;
+}
+.button-link-delete.alistclub-banner-delete:hover { color: #a00; }
+
+@media (max-width: 782px) {
+	.alistclub-banner-row {
+		grid-template-columns: 28px 1fr;
+	}
+	.alistclub-banner-media,
+	.alistclub-banner-fields,
+	.alistclub-banner-actions {
+		grid-column: 2;
+	}
+}

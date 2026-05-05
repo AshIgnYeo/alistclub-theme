@@ -1,0 +1,113 @@
+/*
+=== FRAMEWORK SCSS FILE ===
+Type: Framework
+Author: AshIgn
+Description: Controls the layout and scaffold of the site, sets defaults styling of tags and general elements
+*/
+//*************************************************************************************/
+// REMOVE DEFAULT
+//*************************************************************************************/
+* {
+  padding: 0;
+  margin: 0;
+}
+//*************************************************************************************/
+// BODY
+//*************************************************************************************/
+body {
+  font-size: 16px;
+  font-family: Roboto, SANS-SERIF;
+  background-color: $lightGrey;
+}
+//*************************************************************************************/
+// CONTAINER AND ROWS
+//*************************************************************************************/
+.container {
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0 15px;
+
+  width: $containerWidthMobile;
+  @include tablet {
+    width: #{$containerWidthTablet}px;
+  }
+  @include desktop {
+    width: #{$containerWidthDesktop}px;
+  }
+  @include large {
+    width: #{$containerWidthLarge}px;
+  }
+
+  &.full {
+    width: 100%;
+  }
+
+  &.padless {
+    padding: 0;
+  }
+
+  &.center {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .row {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+
+    &.center {
+      justify-content: center;
+      align-items: center;
+    }
+  }
+}
+//*************************************************************************************/
+// HEADERS
+//*************************************************************************************/
+h1.title,
+h2.title,
+h3.title,
+h4.title,
+h5.title,
+h6.title {
+  font-weight: bold;
+  border-bottom: 1px solid #cecece;
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+}
+h1.title {
+  font-size: 3rem;
+}
+h2.title {
+  font-size: 2rem;
+}
+h3.title {
+  font-size: 1.5rem;
+}
+h4.title {
+  font-size: 1.2rem;
+}
+h5.title {
+  font-size: 0.8rem;
+}
+h6.title {
+  font-size: 0.6rem;
+}
+//*************************************************************************************/
+// GENERAL ELEMENTS
+//*************************************************************************************/
+div,
+p {
+  box-sizing: border-box;
+}
+img {
+  display: block;
+  max-width: 100%;
+  margin: 0 auto;
+}
+p {
+  margin: 0 0 15px;
+}

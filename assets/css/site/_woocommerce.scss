@@ -1,0 +1,133 @@
+/*
+=== WOOCOMMERCE OVERRIDE SCSS FILE ===
+Type: Site Specific
+Author: AshIgn
+Description: Override default styles for WooCommerce plugin
+*/
+
+.woocommerce-loop-product__title {
+  color: #000;
+}
+.woocommerce div.product .woocommerce-tabs .panel ul,
+.woocommerce div.product .woocommerce-tabs .panel ol {
+  margin-left: 20px;
+}
+
+.woocommerce ul.products li.product,
+.woocommerce-page ul.products li.product {
+  text-align: center;
+  padding-bottom: 10px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: scale(1.01);
+    z-index: 1;
+    box-shadow: 5px 5px 20px 1px $midGrey;
+    background-color: #fff;
+  }
+}
+.woocommerce ul.products li.product .woocommerce-loop-category__title,
+.woocommerce ul.products li.product .woocommerce-loop-product__title,
+.woocommerce ul.products li.product h3 {
+  height: 40px;
+  text-align: center;
+}
+.woocommerce ul.products li.product .price {
+  text-align: center;
+}
+.woocommerce-pagination {
+  margin-top: 30px;
+}
+.woocommerce nav.woocommerce-pagination ul li a {
+  color: #000;
+}
+nav.woocommerce-pagination ul li a:focus,
+.woocommerce nav.woocommerce-pagination ul li a:hover,
+.woocommerce nav.woocommerce-pagination ul li span.current {
+  background-color: #000;
+  color: #fff;
+}
+.woocommerce #respond input#submit,
+.woocommerce a.button,
+.woocommerce button.button,
+.woocommerce input.button,
+.woocommerce #respond input#submit.alt,
+.woocommerce a.button.alt,
+.woocommerce button.button.alt,
+.woocommerce input.button.alt {
+  @extend #btn-default--force;
+  text-align: center;
+}
+#add_payment_method table.cart td.actions .coupon .input-text,
+.woocommerce-cart table.cart td.actions .coupon .input-text,
+.woocommerce-checkout table.cart td.actions .coupon .input-text,
+.woocommerce .quantity .qty {
+  padding: $form-element-padding-top 5px $form-element-padding-bottom 5px;
+  border: 1px solid #000;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.woocommerce table.cart td.actions .coupon {
+  @extend #flex-center;
+
+  input {
+    width: 150px;
+  }
+}
+
+.woocommerce-cart .wc-proceed-to-checkout a.checkout-button {
+  background-color: #22a30f !important;
+
+  &:hover {
+    background-color: #187d0d !important;
+  }
+}
+
+.woocommerce form .form-row input.input-text,
+.woocommerce .woocommerce-ordering select {
+  @extend #form-input-padding;
+  font-size: 1rem;
+}
+
+.woocommerce div.product form.cart {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  table.thwepo-extra-options {
+    margin-bottom: 20px;
+    width: 100%;
+
+    td {
+      vertical-align: top;
+    }
+
+    input[type="text"] {
+      @extend #form-input-padding;
+      box-sizing: border-box;
+      margin-bottom: 5px;
+      font-size: 0.8rem;
+    }
+    select#gc_mail_method {
+      width: 100%;
+      margin-bottom: 5px;
+      font-size: 0.8rem;
+      height: 30px;
+      background-color: #fff;
+    }
+    textarea#gc_message,
+    textarea#gc_address {
+      width: 100%;
+      padding: 5px;
+      box-sizing: border-box;
+    }
+  }
+}
+
+// Account page
+nav.woocommerce-MyAccount-navigation {
+  ul {
+    list-style-type: none;
+  }
+}

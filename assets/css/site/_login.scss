@@ -1,0 +1,36 @@
+#login {
+  width: 80%;
+
+  @include tablet {
+    width: 60%;
+  }
+
+  @include desktop {
+    width: 40%;
+  }
+}
+.login h1 a {
+  background-image: url("/wp-content/uploads/2020/04/alist-logo-paypal.png");
+  background-size: 100%;
+  height: 70px;
+  width: 200px;
+}
+.login form {
+  background-color: #f6f6f6;
+  border: none;
+  box-shadow: none;
+}
+.wp-core-ui .button-primary {
+  @extend #btn-default;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: #000;
+  }
+}
+.login .button.wp-hide-pw .dashicons {
+  color: #000;
+}
+.login .privacy-policy-page-link {
+  display: none;
+}

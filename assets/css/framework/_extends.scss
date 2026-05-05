@@ -1,0 +1,89 @@
+/*
+=== EXTENDS SCSS FILE ===
+Type: Framework
+Author: AshIgn
+Description: List of reusable extends 
+*/
+//*************************************************************************************/
+// GENERAL HELPERS
+//*************************************************************************************/
+#flex-center {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+//*************************************************************************************/
+// MARGINS AND PADDINGS
+//*************************************************************************************/
+#form-button-padding {
+	padding: $form-element-padding-top $form-element-padding-right $form-element-padding-bottom $form-element-padding-left;
+}
+#form-input-padding {
+	padding: $form-element-padding-top 5px $form-element-padding-bottom 5px;
+}
+//*************************************************************************************/
+// COLUMNS
+//*************************************************************************************/
+#col-left-default {
+	flex-basis: 100%;
+
+	@include tablet {
+		flex-basis: 35%;
+	}
+
+	@include desktop {
+		flex-basis: 30%
+	}
+}
+
+#col-right-default {
+	flex-basis: 100%;
+	
+	@include tablet {
+		flex-basis: 65%;
+	}
+
+	@include desktop {
+		flex-basis: 70%;
+	}
+}
+//*************************************************************************************/
+// BUTTONS
+//*************************************************************************************/
+#btn-default {
+	@extend #form-button-padding;
+	border: 1px solid $btn-default-bg;
+	background-color: $btn-default-bg;
+	color: $btn-default-color;
+	transition: 0.15s;
+
+	&:hover {
+		background-color: $btn-default-hover-bg;
+		color: $btn-default-hover-color;
+	}
+}
+// use with --force to override clashing styles
+#btn-default--force {
+	padding: $form-element-padding-top $form-element-padding-right $form-element-padding-bottom $form-element-padding-left !important;
+	border: 1px solid $btn-default-bg !important;
+	background-color: $btn-default-bg !important;
+	color: $btn-default-color !important;
+	transition: 0.15s !important;
+
+	&:hover {
+		background-color: $btn-default-hover-bg !important;
+		color: $btn-default-hover-color !important;
+	}
+}
+
+#btn-default-colors {
+	border: 1px solid $btn-default-bg;
+	background-color: $btn-default-bg;
+	color: $btn-default-color;
+	transition: 0.15s;
+
+	&:hover {
+		background-color: $btn-default-hover-bg;
+		color: $btn-default-hover-color;
+	}
+}

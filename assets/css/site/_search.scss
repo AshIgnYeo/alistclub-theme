@@ -1,0 +1,129 @@
+/*
+=== SEARCH SCSS FILE ===
+Type: Site Specific
+Author: AshIgn
+Description: Overlay search
+*/
+body.lock {
+  overflow: hidden;
+}
+section#search {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 10000;
+  height: 100%;
+  background-color: rgba(#000000, 0.8);
+  @extend #flex-center;
+  align-items: flex-start;
+  display: none;
+  overflow-y: scroll;
+
+  span#close-search-overlay {
+    position: fixed;
+    color: #fff;
+    top: 30px;
+    right: 30px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: #db5151;
+    }
+  }
+
+  label {
+    color: #fff;
+    font-size: 1.5rem;
+  }
+
+  .search__input-wrapper {
+    margin: 40px auto;
+    width: 90%;
+
+    input#search-input {
+      width: 100%;
+      box-sizing: border-box;
+      @extend #form-input-padding;
+      font-size: 1rem;
+    }
+  }
+
+  #search-results {
+    color: #fff;
+    display: flex;
+    flex-wrap: wrap;
+
+    .search-result-wrapper {
+      flex-basis: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+
+      @include tablet {
+        flex-basis: 50%;
+        padding: 10px;
+      }
+
+      h3.title {
+        width: 100%;
+        text-align: left;
+      }
+
+      &.full {
+        flex-basis: 100%;
+      }
+    }
+
+    // product searh results
+    .search-product {
+      width: 31%;
+      margin: 10px 1%;
+      background-color: #fff;
+      color: #000;
+      text-align: center;
+
+      @include tablet {
+        width: 18%;
+      }
+
+      a {
+        color: #000;
+        text-decoration: none;
+      }
+
+      .product-details {
+        padding: 10px;
+        align-self: flex-end;
+
+        h4 {
+          border-bottom: none;
+          font-weight: 500;
+          margin-bottom: 0;
+        }
+      }
+
+      &:hover {
+        transform: scale(1.01);
+      }
+    }
+
+    // FAQ search results
+    .search-faq,
+    .search-post {
+      border-left: 3px solid $midGrey;
+      margin-bottom: 10px;
+      padding: 8px 0 8px 10px;
+
+      h4 {
+        margin-bottom: 10px;
+      }
+
+      p {
+        margin-bottom: 0;
+      }
+    }
+
+    // Post search results
+  }
+}

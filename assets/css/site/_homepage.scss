@@ -1,0 +1,72 @@
+/*
+=== HOMEPAGE SCSS FILE ===
+Type: Site Specific
+Author: AshIgn
+Description: Styles for front-page.php
+*/
+
+section#banner-carousel {
+  max-height: 40vh;
+  overflow: hidden;
+  @extend #flex-center;
+
+  @include desktop {
+    max-height: 50vh;
+  }
+}
+
+section#store-area {
+  padding-top: 20px;
+  background-color: #fff;
+
+  .col-left {
+    @extend #col-left-default;
+  }
+
+  .col-right {
+    @extend #col-right-default;
+  }
+
+  .store__search-wrapper {
+    margin-top: 0;
+  }
+
+  .store__products-wrapper {
+    margin-top: 20px;
+
+    #store__products {
+      .product-item {
+        flex-basis: 31%;
+        margin: 1%;
+        padding: 15px;
+        outline: 1px solid #ccc;
+        flex-direction: column;
+        @extend #flex-center;
+
+        &:hover {
+          .product-image img {
+            transform: scale(1.1);
+          }
+        }
+
+        .product-image {
+          width: 100%;
+          overflow: hidden;
+          padding: 15px 0;
+
+          img {
+            transition: all 0.25s ease;
+          }
+        }
+
+        .product-name {
+          font-weight: bold;
+          padding: 5px;
+        }
+
+        .product-price {
+        }
+      }
+    }
+  }
+}
