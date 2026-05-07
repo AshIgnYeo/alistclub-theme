@@ -556,6 +556,67 @@ nav.woocommerce-MyAccount-navigation ul li[class*="--logout"]:hover > a {
 }
 
 /* ----------------------------------- *
+ * FAQ page — search & list
+ * ----------------------------------- */
+.faq-page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--ac-space-lg);
+}
+.faq-search {
+	position: sticky;
+	top: 0;
+	background: var(--ac-color-surface);
+	padding: var(--ac-space-sm) 0;
+	/* Sit above the relative-positioned nav (z:9999) so the search input
+	   never gets covered when scrolling, but stay below the search modal (10000). */
+	z-index: 9999;
+}
+.faq-search__input {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 0.85rem 1rem;
+	font-size: 1.1rem;
+	border: 1px solid var(--ac-color-border);
+	border-radius: var(--ac-radius);
+	background: var(--ac-color-surface);
+	transition: border-color var(--ac-transition), box-shadow var(--ac-transition);
+}
+.faq-search__input:focus {
+	outline: none;
+	border-color: var(--ac-color-fg);
+	box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+}
+.faq-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--ac-space-md);
+}
+.faq-item {
+	margin-bottom: 0;
+	padding: var(--ac-space-md) var(--ac-space-lg);
+	background: var(--ac-color-surface);
+	border: 1px solid var(--ac-color-border);
+	border-radius: var(--ac-radius);
+	transition: box-shadow var(--ac-transition), transform var(--ac-transition);
+}
+.faq-item:hover {
+	box-shadow: var(--ac-shadow-md);
+}
+.faq-item h3 {
+	margin: 0 0 var(--ac-space-sm);
+	font-size: var(--ac-fs-h3);
+}
+.faq-item__answer > *:last-child {
+	margin-bottom: 0;
+}
+.faq-empty {
+	color: var(--ac-color-muted);
+	font-style: italic;
+	margin: 0;
+}
+
+/* ----------------------------------- *
  * Flash Notice modal
  * ----------------------------------- */
 .flash-notice {
@@ -641,4 +702,180 @@ nav.woocommerce-MyAccount-navigation ul li[class*="--logout"]:hover > a {
 @media (max-width: 480px) {
 	.flash-notice__dialog { padding: 2rem 1.25rem 1.25rem; }
 	.flash-notice__button { width: 100%; text-align: center; }
+}
+
+/* ----------------------------------- *
+ * Side product nav — modernised + sticky
+ * ----------------------------------- */
+
+/* Stretch the left column so #sidebar (position: sticky) has scroll room
+   inside its flex parent. The .row uses align-items: flex-start, which
+   would otherwise size the col-left to its content. */
+#page-content .col-left {
+	align-self: stretch;
+}
+
+#sidebar {
+	position: sticky;
+	top: var(--ac-space-md);
+	align-self: start;
+}
+
+#sidebar .category-menu-section {
+	width: 100%;
+	margin: 0 0 var(--ac-space-md);
+	padding: var(--ac-space-xs) 0;
+	background: var(--ac-color-surface);
+	border: 1px solid var(--ac-color-border);
+	border-radius: var(--ac-radius);
+	box-shadow: var(--ac-shadow-md);
+	overflow: hidden;
+}
+
+#sidebar .category-menu-section ul {
+	list-style: none;
+	margin: 0 !important;
+	padding: 0;
+}
+
+#sidebar .category-menu-section ul li {
+	position: relative;
+	background: transparent;
+	border: 0;
+	border-bottom: 1px solid var(--ac-color-border);
+	transition: background var(--ac-transition);
+}
+
+#sidebar .category-menu-section ul li:last-child {
+	border-bottom: 0;
+}
+
+#sidebar .category-menu-section ul li a {
+	display: block;
+	padding: 0.75rem var(--ac-space-md);
+	color: var(--ac-color-fg);
+	text-decoration: none;
+	font-size: 0.95rem;
+	font-weight: 500;
+	transition: color var(--ac-transition);
+}
+
+#sidebar .category-menu-section ul li:hover {
+	background: var(--ac-color-surface-alt);
+}
+
+#sidebar .category-menu-section ul li:hover a {
+	color: var(--ac-color-fg);
+}
+
+/* Override the legacy "> " text indicator with a clean chevron. */
+#sidebar .category-menu-section ul li.menu-item-has-children::after {
+	content: "›";
+	font-size: 1.25rem;
+	line-height: 1;
+	color: var(--ac-color-muted);
+	right: var(--ac-space-md);
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+#sidebar .category-menu-section ul li:hover.menu-item-has-children::after {
+	color: var(--ac-color-fg);
+}
+
+/* Submenu (flyout to the right of the sidebar) */
+#sidebar .category-menu-section ul li ul.sub-menu {
+	background: var(--ac-color-surface);
+	border: 1px solid var(--ac-color-border);
+	border-radius: var(--ac-radius);
+	box-shadow: var(--ac-shadow-md);
+	overflow: hidden;
+	min-width: 200px;
+	right: auto;
+	left: 100%;
+	margin-left: 4px;
+}
+
+#sidebar .category-menu-section ul li ul.sub-menu li {
+	background: transparent;
+	border-bottom: 1px solid var(--ac-color-border);
+}
+
+#sidebar .category-menu-section ul li ul.sub-menu li:last-child {
+	border-bottom: 0;
+}
+
+#sidebar .category-menu-section ul li ul.sub-menu li a {
+	color: var(--ac-color-fg);
+}
+
+#sidebar .category-menu-section ul li ul.sub-menu li:hover {
+	background: var(--ac-color-surface-alt);
+}
+
+@media (max-width: 999px) {
+	#page-content .col-left {
+		align-self: auto;
+	}
+	#sidebar {
+		position: static;
+	}
+}
+
+/* ----------------------------------- *
+ * Layout tuning — narrower side nav, breathing room, larger hero search
+ * ----------------------------------- */
+
+/* Slim down the product nav and give the content room to breathe. */
+@media screen and (min-width: 740px) {
+	#page-content .col-left,
+	section#store-area .col-left {
+		flex-basis: 28%;
+		padding-right: var(--ac-space-lg);
+	}
+	#page-content .col-right,
+	section#store-area .col-right {
+		flex-basis: 72%;
+	}
+}
+
+@media screen and (min-width: 1000px) {
+	#page-content .col-left,
+	section#store-area .col-left {
+		flex-basis: 24%;
+		padding-right: var(--ac-space-xl);
+	}
+	#page-content .col-right,
+	section#store-area .col-right {
+		flex-basis: 76%;
+	}
+}
+
+/* Tighter, more compact menu items in the sidebar. */
+#sidebar .category-menu-section ul li a {
+	padding: 0.55rem var(--ac-space-md);
+	font-size: 0.9rem;
+}
+
+/* Beefier homepage search field. */
+section#store-area .store__search-wrapper {
+	margin-bottom: var(--ac-space-lg);
+}
+
+section#store-area .store__search-wrapper .form-input,
+.input-group input[type="text"].form-input#main-search,
+.input-group input[type="search"]#main-search {
+	padding: 1rem 1.25rem;
+	font-size: 1.125rem;
+	border-radius: var(--ac-radius);
+	border: 1px solid var(--ac-color-border);
+	box-shadow: var(--ac-shadow-md);
+	width: 100%;
+	box-sizing: border-box;
+}
+
+section#store-area .store__search-wrapper .form-input:focus,
+.input-group input[type="search"]#main-search:focus {
+	outline: none;
+	border-color: var(--ac-color-fg);
 }

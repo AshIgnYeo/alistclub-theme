@@ -23,11 +23,7 @@
 			</button>
 
 			<div class="nav__main-wrapper" id="primary-menu">
-				<ul class="link-list list-inverse-color list-row">
-					<li class="list-item nav-link"><a href="<?php echo esc_url( home_url( '/about' ) ); ?>"><?php esc_html_e( 'About', 'alistclub' ); ?></a></li>
-					<li class="list-item nav-link"><a href="<?php echo esc_url( home_url( '/faq' ) ); ?>"><?php esc_html_e( 'FAQ', 'alistclub' ); ?></a></li>
-					<li class="list-item nav-link"><a href="<?php echo esc_url( home_url( '/contact' ) ); ?>"><?php esc_html_e( 'Contact', 'alistclub' ); ?></a></li>
-				</ul>
+				<ul class="link-list list-inverse-color list-row"></ul>
 			</div>
 
 			<div class="nav__account-wrapper">
