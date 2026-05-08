@@ -191,6 +191,143 @@
 	}
 
 	/**
+	 * Homepage Store grid — sort, filter (server), and live name/brand search (client).
+	 */
+	class Store {
+		constructor() {
+			this.grid    = $('#store__products');
+			this.title   = $('[data-store-title]');
+			this.sortLbl = $('[data-sort-label]');
+			this.search  = $('#main-search');
+			this.sortBtns = $$('.sort-btn');
+			this.filterInputs = $$('.filter-input');
+			if (!this.grid) return;
+
+			this.controller = null;
+			this.searchTimer = null;
+			this.filterTimer = null;
+			this.bind();
+		}
+
+		bind() {
+			this.sortBtns.forEach((btn) => {
+				btn.addEventListener('click', () => this.onSortClick(btn));
+			});
+			this.filterInputs.forEach((inp) => {
+				inp.addEventListener('change', () => {
+					clearTimeout(this.filterTimer);
+					this.filterTimer = setTimeout(() => this.fetchProducts(), 120);
+				});
+			});
+			if (this.search) {
+				this.search.addEventListener('input', () => {
+					clearTimeout(this.searchTimer);
+					this.searchTimer = setTimeout(() => this.applySearchFilter(), 100);
+				});
+			}
+		}
+
+		onSortClick(btn) {
+			if (btn.classList.contains('is-active')) return;
+			this.sortBtns.forEach((b) => b.classList.remove('is-active'));
+			btn.classList.add('is-active');
+			if (this.sortLbl) {
+				this.sortLbl.textContent = 'Sort by';
+			}
+			if (this.title) {
+				this.title.textContent = btn.dataset.sortName || 'Store';
+			}
+			this.grid.dataset.sort = btn.dataset.sort || 'all';
+			this.fetchProducts();
+		}
+
+		activeSort() {
+			const active = this.sortBtns.find((b) => b.classList.contains('is-active'));
+			return active ? (active.dataset.sort || 'all') : 'all';
+		}
+
+		checkedFilters(kind) {
+			return this.filterInputs
+				.filter((i) => i.dataset.filter === kind && i.checked)
+				.map((i) => i.value);
+		}
+
+		async fetchProducts() {
+			const base = (window.localData && window.localData.productsUrl)
+				? window.localData.productsUrl
+				: `${(window.localData && window.localData.siteUrl) || ''}/wp-json/alistclub/v1/products`;
+			const params = new URLSearchParams();
+			params.set('orderby', this.activeSort());
+			const brands = this.checkedFilters('brands');
+			const cats   = this.checkedFilters('categories');
+			brands.forEach((b) => params.append('brands[]', b));
+			cats.forEach((c) => params.append('categories[]', c));
+
+			if (this.controller) this.controller.abort();
+			this.controller = new AbortController();
+			this.grid.classList.add('is-loading');
+
+			try {
+				const res = await fetch(`${base}?${params.toString()}`, {
+					signal: this.controller.signal,
+					headers: { 'X-WP-Nonce': (window.localData && window.localData.restNonce) || '' }
+				});
+				if (!res.ok) throw new Error('Products request failed');
+				const data = await res.json();
+				this.render(data.products || []);
+			} catch (err) {
+				if (err.name !== 'AbortError') {
+					this.grid.innerHTML = `<p class="store__error">${escapeHTML('Could not load products. Please try again.')}</p>`;
+				}
+			} finally {
+				this.grid.classList.remove('is-loading');
+			}
+		}
+
+		render(products) {
+			if (!products.length) {
+				this.grid.innerHTML = `<p class="store__empty">${escapeHTML('No products match these filters.')}</p>`;
+				return;
+			}
+			this.grid.innerHTML = products.map((p) => this.tile(p)).join('');
+			this.applySearchFilter();
+		}
+
+		tile(p) {
+			const name  = p.name || '';
+			const brand = p.brand || '';
+			return `
+				<div class="product-item"
+					data-name="${escapeHTML(name.toLowerCase())}"
+					data-brand="${escapeHTML(brand.toLowerCase())}">
+					<a class="product-link" href="${escapeHTML(p.permalink || '#')}">
+						<div class="product-image">
+							${p.image ? `<img src="${escapeHTML(p.image)}" alt="${escapeHTML(name)}" loading="lazy" decoding="async">` : ''}
+						</div>
+						<div class="product-name">${escapeHTML(name)}</div>
+						${brand ? `<div class="product-brand">${escapeHTML(brand)}</div>` : ''}
+						<div class="product-price">${p.price_html || ''}</div>
+					</a>
+					<div class="product-cart">${p.add_to_cart_html || ''}</div>
+				</div>`;
+		}
+
+		applySearchFilter() {
+			const q = (this.search ? this.search.value : '').trim().toLowerCase();
+			const tiles = $$('.product-item', this.grid);
+			if (!q) {
+				tiles.forEach((t) => { t.hidden = false; });
+				return;
+			}
+			tiles.forEach((t) => {
+				const name  = t.dataset.name  || '';
+				const brand = t.dataset.brand || '';
+				t.hidden = !(name.includes(q) || brand.includes(q));
+			});
+		}
+	}
+
+	/**
 	 * Flash Notice modal — shows a configurable popup until dismissed.
 	 * Cookie value = content version, so editing the message re-shows it.
 	 */
@@ -379,6 +516,7 @@
 		initSubmenuTap();
 		initBanners();
 		new Search();
+		new Store();
 		new FlashNotice();
 		initWCExtras();
 	}

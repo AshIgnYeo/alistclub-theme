@@ -27,6 +27,9 @@ function alistclub_default_options() {
 		'flash_show_once'   => 0,
 		'flash_cookie_days' => 7,
 		'flash_buttons'     => array(),
+		'maintenance_enabled' => 0,
+		'maintenance_heading' => '',
+		'maintenance_message' => '',
 	);
 }
 
@@ -76,6 +79,18 @@ function alistclub_get_flash_notice() {
 		'show_once'   => $show_once,
 		'cookie_days' => max( 0, min( 365, $cookie_days ) ),
 		'version'     => $version,
+	);
+}
+
+/**
+ * Get the maintenance mode config (raw values for the filter / drop-in).
+ */
+function alistclub_get_maintenance_config() {
+	$opts = alistclub_get_options();
+	return array(
+		'enabled' => ! empty( $opts['maintenance_enabled'] ),
+		'heading' => isset( $opts['maintenance_heading'] ) ? (string) $opts['maintenance_heading'] : '',
+		'message' => isset( $opts['maintenance_message'] ) ? (string) $opts['maintenance_message'] : '',
 	);
 }
 
@@ -239,15 +254,18 @@ function alistclub_sanitize_settings_section( $input, &$out ) {
 		}
 	}
 	$out['flash_buttons'] = $buttons;
+
+	$out['maintenance_enabled'] = ! empty( $input['maintenance_enabled'] ) ? 1 : 0;
+	$out['maintenance_heading'] = isset( $input['maintenance_heading'] ) ? sanitize_text_field( $input['maintenance_heading'] ) : '';
+	$out['maintenance_message'] = isset( $input['maintenance_message'] ) ? wp_kses_post( $input['maintenance_message'] ) : '';
 }
 
 /**
  * Enqueue admin assets only on our options page.
  */
 function alistclub_options_admin_assets( $hook ) {
-	$is_banners_page  = ( 'toplevel_page_' . ALISTCLUB_MENU_SLUG === $hook );
-	$is_settings_page = ( ALISTCLUB_MENU_SLUG . '_page_' . ALISTCLUB_SETTINGS_PAGE === $hook );
-	if ( ! $is_banners_page && ! $is_settings_page ) {
+	$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+	if ( ! in_array( $page, array( ALISTCLUB_BANNERS_PAGE, ALISTCLUB_SETTINGS_PAGE ), true ) ) {
 		return;
 	}
 	wp_enqueue_media();
@@ -374,13 +392,23 @@ function alistclub_render_settings_page() {
 	?>
 	<div class="wrap alistclub-options">
 		<h1><?php esc_html_e( 'A-List Club Settings', 'alistclub' ); ?></h1>
-		<form method="post" action="options.php">
+		<form method="post" action="options.php" class="alistclub-options__layout">
 			<?php settings_fields( 'alistclub_options_group' ); ?>
 			<input type="hidden" name="<?php echo esc_attr( ALISTCLUB_OPTIONS_KEY ); ?>[_section]" value="settings">
 
-			<?php alistclub_render_flash_notice_section( $opts ); ?>
+			<nav class="alistclub-options__nav" aria-label="<?php esc_attr_e( 'Settings sections', 'alistclub' ); ?>">
+				<ul>
+					<li><a href="#section-flash" class="alistclub-nav-link is-active"><span class="dashicons dashicons-megaphone" aria-hidden="true"></span><?php esc_html_e( 'Flash Notice', 'alistclub' ); ?></a></li>
+					<li><a href="#section-maintenance" class="alistclub-nav-link"><span class="dashicons dashicons-hammer" aria-hidden="true"></span><?php esc_html_e( 'Maintenance Mode', 'alistclub' ); ?></a></li>
+				</ul>
+			</nav>
 
-			<?php submit_button(); ?>
+			<div class="alistclub-options__content">
+				<?php alistclub_render_flash_notice_section( $opts ); ?>
+				<?php alistclub_render_maintenance_section( $opts ); ?>
+
+				<?php submit_button(); ?>
+			</div>
 		</form>
 	</div>
 	<?php
@@ -565,6 +593,70 @@ function alistclub_render_flash_notice_section( $opts ) {
 				<script type="text/template" id="alistclub-flash-button-template">
 					<?php alistclub_render_flash_button_row( '__INDEX__', array() ); ?>
 				</script>
+			</div>
+		</div>
+	</section>
+	<?php
+}
+
+/**
+ * Render the Maintenance Mode section.
+ */
+function alistclub_render_maintenance_section( $opts ) {
+	$enabled = ! empty( $opts['maintenance_enabled'] );
+	$heading = isset( $opts['maintenance_heading'] ) ? (string) $opts['maintenance_heading'] : '';
+	$message = isset( $opts['maintenance_message'] ) ? (string) $opts['maintenance_message'] : '';
+	$key     = ALISTCLUB_OPTIONS_KEY;
+	?>
+	<section id="section-maintenance" class="alistclub-section" aria-labelledby="alistclub-maintenance-section-title">
+		<header class="alistclub-section__header">
+			<h2 id="alistclub-maintenance-section-title" class="alistclub-section__title">
+				<span class="dashicons dashicons-hammer" aria-hidden="true"></span>
+				<?php esc_html_e( 'Maintenance Mode', 'alistclub' ); ?>
+			</h2>
+			<p class="alistclub-section__description">
+				<?php esc_html_e( 'Take the public site offline and show a styled maintenance page. Administrators stay signed in and can keep using wp-admin.', 'alistclub' ); ?>
+			</p>
+		</header>
+
+		<div class="alistclub-section__body">
+			<div class="alistclub-section__group">
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Enable Maintenance Mode', 'alistclub' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="<?php echo esc_attr( $key ); ?>[maintenance_enabled]" value="1" <?php checked( $enabled ); ?>>
+								<?php esc_html_e( 'Show the maintenance page to public visitors (returns HTTP 503)', 'alistclub' ); ?>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="alistclub_maintenance_heading"><?php esc_html_e( 'Heading', 'alistclub' ); ?></label></th>
+						<td>
+							<input type="text" id="alistclub_maintenance_heading"
+								name="<?php echo esc_attr( $key ); ?>[maintenance_heading]"
+								value="<?php echo esc_attr( $heading ); ?>"
+								class="regular-text"
+								placeholder="<?php esc_attr_e( 'We&rsquo;ll be right back', 'alistclub' ); ?>">
+						</td>
+					</tr>
+				</table>
+			</div>
+
+			<div class="alistclub-section__group">
+				<h3 class="alistclub-section__group-title"><?php esc_html_e( 'Message', 'alistclub' ); ?></h3>
+				<?php
+				wp_editor(
+					$message,
+					'alistclub_maintenance_message',
+					array(
+						'textarea_name' => $key . '[maintenance_message]',
+						'textarea_rows' => 6,
+						'media_buttons' => false,
+					)
+				);
+				?>
 			</div>
 		</div>
 	</section>

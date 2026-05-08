@@ -40,10 +40,16 @@ function alistclub_styles_and_scripts() {
 		array( 'in_footer' => true, 'strategy' => 'defer' )
 	);
 
+	if ( is_front_page() && class_exists( 'WooCommerce' ) ) {
+		wp_enqueue_script( 'wc-add-to-cart' );
+		wp_enqueue_script( 'wc-cart-fragments' );
+	}
+
 	wp_localize_script( 'alistclub-main', 'localData', array(
-		'siteUrl'  => esc_url( get_site_url() ),
-		'restUrl'  => esc_url_raw( rest_url( 'alistclub/v1/search' ) ),
-		'restNonce'=> wp_create_nonce( 'wp_rest' ),
+		'siteUrl'    => esc_url( get_site_url() ),
+		'restUrl'    => esc_url_raw( rest_url( 'alistclub/v1/search' ) ),
+		'productsUrl'=> esc_url_raw( rest_url( 'alistclub/v1/products' ) ),
+		'restNonce'  => wp_create_nonce( 'wp_rest' ),
 	) );
 }
 add_action( 'wp_enqueue_scripts', 'alistclub_styles_and_scripts' );
@@ -110,9 +116,15 @@ if ( class_exists( 'WooCommerce' ) ) {
 require get_theme_file_path( '/inc/search-route.php' );
 
 /**
+ * Custom REST products endpoint (homepage Store grid).
+ */
+require get_theme_file_path( '/inc/products-route.php' );
+
+/**
  * Theme options (native WP admin page).
  */
 require get_theme_file_path( '/inc/theme-options.php' );
+require get_theme_file_path( '/inc/maintenance-mode.php' );
 
 /**
  * FAQ custom post type.

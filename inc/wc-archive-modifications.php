@@ -18,31 +18,43 @@ function alistclub_wc_add_opening() {
 add_action( 'woocommerce_before_main_content', 'alistclub_wc_add_opening', 0 );
 
 /**
- * Left column opening tag.
+ * Left column opening tag (archives only — hidden on single product).
  */
 function alistclub_wc_left_column_open() {
+	if ( is_product() ) {
+		return;
+	}
 	echo '<div class="col-left">';
 }
 add_action( 'woocommerce_before_main_content', 'alistclub_wc_left_column_open', 5 );
 
 /**
- * Default sidebar inside the left column.
+ * Default sidebar inside the left column (archives only).
  */
-add_action( 'woocommerce_before_main_content', 'woocommerce_get_sidebar', 6 );
+function alistclub_wc_maybe_get_sidebar() {
+	if ( is_product() ) {
+		return;
+	}
+	woocommerce_get_sidebar();
+}
+add_action( 'woocommerce_before_main_content', 'alistclub_wc_maybe_get_sidebar', 6 );
 
 /**
- * Left column closing tag.
+ * Left column closing tag (archives only).
  */
 function alistclub_wc_left_column_close() {
+	if ( is_product() ) {
+		return;
+	}
 	echo '</div>';
 }
 add_action( 'woocommerce_before_main_content', 'alistclub_wc_left_column_close', 7 );
 
 /**
- * Right column opening tag.
+ * Right column opening tag — full width on single product pages.
  */
 function alistclub_wc_right_column_open() {
-	echo '<div class="col-right">';
+	echo is_product() ? '<div class="col-full">' : '<div class="col-right">';
 }
 add_action( 'woocommerce_before_main_content', 'alistclub_wc_right_column_open', 8 );
 
@@ -103,3 +115,28 @@ remove_action( 'woocommerce_sidebar', 'woocommerce_get_sidebar' );
  * Hide the shop page title.
  */
 add_filter( 'woocommerce_show_page_title', '__return_false' );
+
+/**
+ * Replace the default <ul class="products"> wrapper on archives so the
+ * archive grid uses the same flex layout as the homepage Store grid.
+ * Single product pages are unaffected.
+ */
+function alistclub_wc_loop_start() {
+	return '';
+}
+add_filter( 'woocommerce_product_loop_start', 'alistclub_wc_loop_start' );
+
+function alistclub_wc_loop_end() {
+	return '';
+}
+add_filter( 'woocommerce_product_loop_end', 'alistclub_wc_loop_end' );
+
+/**
+ * Remove the default WC result count + ordering dropdown — the sidebar
+ * already provides sorting, and these elements break our flex layout.
+ */
+function alistclub_wc_strip_archive_controls() {
+	remove_action( 'woocommerce_before_shop_loop', 'woocommerce_result_count', 20 );
+	remove_action( 'woocommerce_before_shop_loop', 'woocommerce_catalog_ordering', 30 );
+}
+add_action( 'wp', 'alistclub_wc_strip_archive_controls' );
