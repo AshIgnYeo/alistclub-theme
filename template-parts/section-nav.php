@@ -47,7 +47,7 @@
 						</li>
 					<?php endif; ?>
 					<li class="list-item nav-link">
-						<a href="<?php echo esc_url( home_url( '/cart' ) ); ?>" aria-label="<?php esc_attr_e( 'Cart', 'alistclub' ); ?>"><i class="fa fa-shopping-basket" aria-hidden="true"></i></a>
+						<a href="<?php echo esc_url( function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : home_url( '/basket' ) ); ?>" aria-label="<?php esc_attr_e( 'Basket', 'alistclub' ); ?>"><i class="fa fa-shopping-basket" aria-hidden="true"></i></a>
 					</li>
 				</ul>
 			</div>

@@ -11,12 +11,7 @@ if ( ! $is_account ) {
 <main id="page-content" tabindex="-1" class="<?php echo esc_attr( $main_class ); ?>">
 	<div class="container">
 		<div class="row">
-			<?php if ( ! $is_account ) : ?>
-				<div class="col-left">
-					<?php get_sidebar(); ?>
-				</div>
-			<?php endif; ?>
-			<div class="<?php echo $is_account ? 'col-full' : 'col-right'; ?>">
+			<div class="col-full">
 				<?php
 				$content_type = get_post_field( 'post_name', get_the_ID() );
 				$slug_part    = sanitize_file_name( $content_type );
