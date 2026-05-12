@@ -42,3 +42,10 @@ add_filter('woocommerce_product_tabs', function ($tabs) {
 	}
 	return $tabs;
 }, 98);
+
+/**
+ * Hide the PayPal Smart Button (and Pay Later messaging) from the
+ * single product page — checkout-only PayPal flow is preferred.
+ */
+add_filter('woocommerce_paypal_payments_product_buttons_disabled', '__return_true');
+add_filter('woocommerce_paypal_payments_product_buttons_paylater_disabled', '__return_true');
