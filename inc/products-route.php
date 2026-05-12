@@ -39,6 +39,10 @@ function alistclub_register_products_route() {
 					'required'          => false,
 					'sanitize_callback' => 'absint',
 				),
+				'search'     => array(
+					'required'          => false,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
 			),
 		)
 	);
@@ -72,9 +76,10 @@ function alistclub_products_results( WP_REST_Request $request ) {
 	$orderby    = $orderby ? $orderby : 'all';
 	$brands     = (array) $request->get_param( 'brands' );
 	$categories = (array) $request->get_param( 'categories' );
+	$search     = trim( (string) $request->get_param( 'search' ) );
 	$limit      = (int) $request->get_param( 'limit' );
 	if ( $limit < 1 || $limit > 60 ) {
-		$limit = 12;
+		$limit = $search !== '' ? 60 : 12;
 	}
 
 	$args = array(
@@ -84,6 +89,10 @@ function alistclub_products_results( WP_REST_Request $request ) {
 		'ignore_sticky_posts' => true,
 		'no_found_rows'       => true,
 	);
+
+	if ( $search !== '' ) {
+		$args['s'] = $search;
+	}
 
 	switch ( $orderby ) {
 		case 'popularity':

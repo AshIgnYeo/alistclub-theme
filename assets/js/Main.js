@@ -222,7 +222,7 @@
 			if (this.search) {
 				this.search.addEventListener('input', () => {
 					clearTimeout(this.searchTimer);
-					this.searchTimer = setTimeout(() => this.applySearchFilter(), 100);
+					this.searchTimer = setTimeout(() => this.fetchProducts(), 250);
 				});
 			}
 		}
@@ -262,6 +262,8 @@
 			const cats   = this.checkedFilters('categories');
 			brands.forEach((b) => params.append('brands[]', b));
 			cats.forEach((c) => params.append('categories[]', c));
+			const query = (this.search ? this.search.value : '').trim();
+			if (query) params.set('search', query);
 
 			if (this.controller) this.controller.abort();
 			this.controller = new AbortController();
@@ -290,7 +292,6 @@
 				return;
 			}
 			this.grid.innerHTML = products.map((p) => this.tile(p)).join('');
-			this.applySearchFilter();
 		}
 
 		tile(p) {
@@ -312,19 +313,6 @@
 				</div>`;
 		}
 
-		applySearchFilter() {
-			const q = (this.search ? this.search.value : '').trim().toLowerCase();
-			const tiles = $$('.product-item', this.grid);
-			if (!q) {
-				tiles.forEach((t) => { t.hidden = false; });
-				return;
-			}
-			tiles.forEach((t) => {
-				const name  = t.dataset.name  || '';
-				const brand = t.dataset.brand || '';
-				t.hidden = !(name.includes(q) || brand.includes(q));
-			});
-		}
 	}
 
 	/**
