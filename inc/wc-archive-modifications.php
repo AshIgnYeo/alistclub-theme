@@ -74,11 +74,22 @@ function alistclub_wc_right_column_sections() {
 		default:
 			$store_header = __( 'All Products', 'alistclub' );
 	}
-
-	printf(
-		'<div class="store__products-wrapper"><h2 class="title">%s</h2><div id="store__products">',
-		esc_html( $store_header )
-	);
+	$sort_attr = $option ? $option : 'all';
+	?>
+	<div class="store__search-sticky">
+		<div class="input-group store__search-wrapper">
+			<label for="main-search" class="screen-reader-text"><?php esc_html_e( 'Filter products by name or brand', 'alistclub' ); ?></label>
+			<input
+				type="search"
+				id="main-search"
+				placeholder="<?php esc_attr_e( 'Filter products by name or brand', 'alistclub' ); ?>"
+				class="form-input">
+		</div>
+	</div>
+	<div class="store__products-wrapper">
+		<h2 class="title" data-store-title><?php echo esc_html( $store_header ); ?></h2>
+		<div id="store__products" data-sort="<?php echo esc_attr( $sort_attr ); ?>" aria-live="polite">
+	<?php
 }
 add_action( 'woocommerce_before_shop_loop', 'alistclub_wc_right_column_sections' );
 
