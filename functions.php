@@ -108,6 +108,7 @@ if ( class_exists( 'WooCommerce' ) ) {
 	require get_template_directory() . '/inc/wc-archive-modifications.php';
 	require get_template_directory() . '/inc/wc-single-product-modifications.php';
 	require get_template_directory() . '/inc/wc-cart-modifications.php';
+	require get_template_directory() . '/inc/wc-voucher-fields.php';
 }
 
 /**
