@@ -27,3 +27,18 @@ add_filter('woocommerce_get_availability_text', function ($availability, $produc
 	}
 	return $availability;
 }, 10, 2);
+
+/**
+ * Restrict single-product tabs to the standard WooCommerce set.
+ * Prevents third-party plugins (e.g. payment gateways) from injecting
+ * extra tabs onto the product page.
+ */
+add_filter('woocommerce_product_tabs', function ($tabs) {
+	$allowed = ['description', 'additional_information', 'reviews'];
+	foreach (array_keys($tabs) as $key) {
+		if (!in_array($key, $allowed, true)) {
+			unset($tabs[$key]);
+		}
+	}
+	return $tabs;
+}, 98);
