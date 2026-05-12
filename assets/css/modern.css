@@ -424,7 +424,7 @@ input[type="text"], input[type="search"], input[type="email"], textarea {
 	background: var(--ac-color-bg);
 	padding: var(--ac-space-xl) 0;
 }
-#page-content.is-account .col-full {
+#page-content .col-full {
 	flex-basis: 100%;
 	width: 100%;
 }
