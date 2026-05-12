@@ -19,3 +19,6 @@ node_modules/
 *~
 *.swp
 *.bak
+
+# Claude Code local settings
+.claude/settings.local.json
