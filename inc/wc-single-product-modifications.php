@@ -16,3 +16,14 @@ function alistclub_wc_single_modifications()
 	remove_action('woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20);
 }
 add_action('wp', 'alistclub_wc_single_modifications');
+
+/**
+ * Hide stock quantity ("X in stock") on the single product page.
+ * Keeps out-of-stock and backorder messages intact.
+ */
+add_filter('woocommerce_get_availability_text', function ($availability, $product) {
+	if ($product->is_in_stock() && !$product->is_on_backorder()) {
+		return __('In stock', 'alistclub');
+	}
+	return $availability;
+}, 10, 2);
