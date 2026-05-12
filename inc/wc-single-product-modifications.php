@@ -46,6 +46,13 @@ add_filter('woocommerce_product_tabs', function ($tabs) {
 /**
  * Hide the PayPal Smart Button (and Pay Later messaging) from the
  * single product page — checkout-only PayPal flow is preferred.
+ *
+ * Redirects the plugin's render hook to a no-op action so the wrapper
+ * markup is never emitted; the `_disabled` filters alone only suppress
+ * the button JS and leave the empty placeholder visible.
  */
+add_filter('woocommerce_paypal_payments_single_product_renderer_hook', function () {
+	return 'alistclub_ppcp_noop';
+});
 add_filter('woocommerce_paypal_payments_product_buttons_disabled', '__return_true');
 add_filter('woocommerce_paypal_payments_product_buttons_paylater_disabled', '__return_true');
