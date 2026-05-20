@@ -25,128 +25,128 @@
 		}
 	}
 
-	const $list   = $('#alistclub-banner-list');
-	const $tpl    = $('#alistclub-banner-template');
-	const $addBtn = $('#alistclub-add-banner');
-
-	if (!$list.length) return;
-
-	/**
-	 * Re-key all input names so server-side array indexes are sequential.
-	 */
-	function reindex() {
-		$list.children('.alistclub-banner-row').each(function (newIdx) {
-			$(this).attr('data-index', newIdx);
-			$(this).find('input, select, textarea').each(function () {
-				const name = $(this).attr('name');
-				if (!name) return;
-				$(this).attr('name', name.replace(/\[banners\]\[[^\]]+\]/, '[banners][' + newIdx + ']'));
-			});
-		});
-	}
-
-	/**
-	 * Make rows sortable by their handle.
-	 */
-	$list.sortable({
-		handle: '.alistclub-banner-handle',
-		placeholder: 'alistclub-banner-row alistclub-placeholder',
-		forcePlaceholderSize: true,
-		update: reindex,
-	});
-
-	/**
-	 * Add new banner.
-	 */
-	$addBtn.on('click', function () {
-		const idx = $list.children('.alistclub-banner-row').length;
-		const html = $tpl.html().replace(/__INDEX__/g, idx);
-		$list.append(html);
-	});
-
-	/**
-	 * Delete banner.
-	 */
-	$list.on('click', '.alistclub-banner-delete', function () {
-		if (!window.confirm(alistclubOptions.confirmRemove)) return;
-		$(this).closest('.alistclub-banner-row').remove();
-		reindex();
-	});
-
-	/**
-	 * Image picker (delegated).
-	 */
-	let frame;
-	$list.on('click', '.alistclub-image-select', function (e) {
-		e.preventDefault();
-		const $field = $(this).closest('.alistclub-image-field');
-
-		frame = wp.media({
-			title:    alistclubOptions.mediaTitle,
-			button:   { text: alistclubOptions.mediaButton },
-			multiple: false,
-			library:  { type: 'image' },
-		});
-
-		frame.on('select', function () {
-			const att = frame.state().get('selection').first().toJSON();
-			const url = (att.sizes && att.sizes.medium && att.sizes.medium.url) || att.url;
-			$field.find('.alistclub-image-id').val(att.id);
-			const $preview = $field.find('.alistclub-image-preview').addClass('has-image');
-			$preview.empty().append($('<img>').attr({ src: url, alt: '' }));
-			$field.find('.alistclub-image-remove').show();
-		});
-
-		frame.open();
-	});
-
-	/**
-	 * Image remove (delegated).
-	 */
-	$list.on('click', '.alistclub-image-remove', function (e) {
-		e.preventDefault();
-		const $field = $(this).closest('.alistclub-image-field');
-		$field.find('.alistclub-image-id').val('');
-		$field.find('.alistclub-image-preview').removeClass('has-image').empty();
-		$(this).hide();
-	});
-
 	/* ---------------------------------------------------------- *
-	 * Flash Notice button repeater
+	 * Generic sortable repeater
 	 * ---------------------------------------------------------- */
-	const $flashList   = $('#alistclub-flash-button-list');
-	const $flashTpl    = $('#alistclub-flash-button-template');
-	const $flashAddBtn = $('#alistclub-add-flash-button');
+	/**
+	 * Wire up an add / delete / drag-to-reorder repeater. Each call guards
+	 * on its own list, so a repeater absent from the current page is simply
+	 * skipped without affecting the others.
+	 *
+	 * @param {Object} cfg
+	 * @param {string} cfg.list     Selector for the row container.
+	 * @param {string} cfg.template Selector for the <script> row template.
+	 * @param {string} cfg.add      Selector for the "add row" button.
+	 * @param {string} cfg.row      Class selector (incl. dot) for a single row.
+	 * @param {string} cfg.handle   Selector for the drag handle.
+	 * @param {string} cfg.del      Selector for a row's delete button.
+	 * @param {string} cfg.key      Option array key, e.g. 'banners'.
+	 * @param {string} cfg.confirm  Confirmation message shown before delete.
+	 * @return {jQuery|null} The list element, or null when absent from the page.
+	 */
+	function initRepeater(cfg) {
+		const $list = $(cfg.list);
+		if (!$list.length) return null;
 
-	if ($flashList.length) {
-		function reindexFlash() {
-			$flashList.children('.alistclub-flash-button-row').each(function (newIdx) {
+		const $tpl    = $(cfg.template);
+		const $addBtn = $(cfg.add);
+		const keyRe   = new RegExp('\\[' + cfg.key + '\\]\\[[^\\]]+\\]');
+
+		// Re-key all input names so server-side array indexes stay sequential.
+		function reindex() {
+			$list.children(cfg.row).each(function (newIdx) {
 				$(this).attr('data-index', newIdx);
 				$(this).find('input, select, textarea').each(function () {
 					const name = $(this).attr('name');
 					if (!name) return;
-					$(this).attr('name', name.replace(/\[flash_buttons\]\[[^\]]+\]/, '[flash_buttons][' + newIdx + ']'));
+					$(this).attr('name', name.replace(keyRe, '[' + cfg.key + '][' + newIdx + ']'));
 				});
 			});
 		}
 
-		$flashList.sortable({
-			handle: '.alistclub-banner-handle',
-			placeholder: 'alistclub-flash-button-row alistclub-placeholder',
+		$list.sortable({
+			handle: cfg.handle,
+			placeholder: cfg.row.slice(1) + ' alistclub-placeholder',
 			forcePlaceholderSize: true,
-			update: reindexFlash,
+			update: reindex,
 		});
 
-		$flashAddBtn.on('click', function () {
-			const idx = $flashList.children('.alistclub-flash-button-row').length;
-			const html = $flashTpl.html().replace(/__INDEX__/g, idx);
-			$flashList.append(html);
+		$addBtn.on('click', function () {
+			const idx = $list.children(cfg.row).length;
+			$list.append($tpl.html().replace(/__INDEX__/g, idx));
 		});
 
-		$flashList.on('click', '.alistclub-flash-button-delete', function () {
-			if (!window.confirm(alistclubOptions.confirmRemoveButton)) return;
-			$(this).closest('.alistclub-flash-button-row').remove();
-			reindexFlash();
+		$list.on('click', cfg.del, function () {
+			if (!window.confirm(cfg.confirm)) return;
+			$(this).closest(cfg.row).remove();
+			reindex();
+		});
+
+		return $list;
+	}
+
+	/* ---------------------------------------------------------- *
+	 * Homepage banners
+	 * ---------------------------------------------------------- */
+	const $bannerList = initRepeater({
+		list:     '#alistclub-banner-list',
+		template: '#alistclub-banner-template',
+		add:      '#alistclub-add-banner',
+		row:      '.alistclub-banner-row',
+		handle:   '.alistclub-banner-handle',
+		del:      '.alistclub-banner-delete',
+		key:      'banners',
+		confirm:  alistclubOptions.confirmRemove,
+	});
+
+	if ($bannerList) {
+		let frame;
+
+		// Image picker (delegated).
+		$bannerList.on('click', '.alistclub-image-select', function (e) {
+			e.preventDefault();
+			const $field = $(this).closest('.alistclub-image-field');
+
+			frame = wp.media({
+				title:    alistclubOptions.mediaTitle,
+				button:   { text: alistclubOptions.mediaButton },
+				multiple: false,
+				library:  { type: 'image' },
+			});
+
+			frame.on('select', function () {
+				const att = frame.state().get('selection').first().toJSON();
+				const url = (att.sizes && att.sizes.medium && att.sizes.medium.url) || att.url;
+				$field.find('.alistclub-image-id').val(att.id);
+				const $preview = $field.find('.alistclub-image-preview').addClass('has-image');
+				$preview.empty().append($('<img>').attr({ src: url, alt: '' }));
+				$field.find('.alistclub-image-remove').show();
+			});
+
+			frame.open();
+		});
+
+		// Image remove (delegated).
+		$bannerList.on('click', '.alistclub-image-remove', function (e) {
+			e.preventDefault();
+			const $field = $(this).closest('.alistclub-image-field');
+			$field.find('.alistclub-image-id').val('');
+			$field.find('.alistclub-image-preview').removeClass('has-image').empty();
+			$(this).hide();
 		});
 	}
+
+	/* ---------------------------------------------------------- *
+	 * Flash Notice action buttons
+	 * ---------------------------------------------------------- */
+	initRepeater({
+		list:     '#alistclub-flash-button-list',
+		template: '#alistclub-flash-button-template',
+		add:      '#alistclub-add-flash-button',
+		row:      '.alistclub-flash-button-row',
+		handle:   '.alistclub-banner-handle',
+		del:      '.alistclub-flash-button-delete',
+		key:      'flash_buttons',
+		confirm:  alistclubOptions.confirmRemoveButton,
+	});
 })(jQuery);
