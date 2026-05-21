@@ -342,3 +342,25 @@
 		grid-column: 2;
 	}
 }
+
+/* ----------------------------------- *
+ * Flash Notice — URL resolution preview
+ * ----------------------------------- */
+.alistclub-flash-button-url-preview {
+	display: block;
+	max-width: 420px;
+	margin-top: 5px;
+	font-weight: 400;
+	font-style: italic;
+	color: #646970;
+	word-break: break-all;
+}
+
+.alistclub-flash-button-url-preview:empty {
+	display: none;
+}
+
+.alistclub-flash-button-url-preview::before {
+	content: "\21B3\00A0";
+	font-style: normal;
+}

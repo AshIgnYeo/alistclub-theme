@@ -39,7 +39,7 @@ $config = array(
 		<?php if ( ! empty( $flash['buttons'] ) ) : ?>
 			<div class="flash-notice__buttons">
 				<?php foreach ( $flash['buttons'] as $btn ) :
-					$href   = ! empty( $btn['url'] ) ? $btn['url'] : '#';
+					$href   = ! empty( $btn['url'] ) ? alistclub_resolve_url( $btn['url'] ) : '#';
 					$target = '_blank' === $btn['target'] ? '_blank' : '_self';
 					$rel    = '_blank' === $target ? 'noopener noreferrer' : '';
 					?>

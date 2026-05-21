@@ -139,7 +139,7 @@
 	/* ---------------------------------------------------------- *
 	 * Flash Notice action buttons
 	 * ---------------------------------------------------------- */
-	initRepeater({
+	const $flashList = initRepeater({
 		list:     '#alistclub-flash-button-list',
 		template: '#alistclub-flash-button-template',
 		add:      '#alistclub-add-flash-button',
@@ -149,4 +149,20 @@
 		key:      'flash_buttons',
 		confirm:  alistclubOptions.confirmRemoveButton,
 	});
+
+	if ($flashList) {
+		// Mirror of PHP alistclub_resolve_url() — preview where a button URL leads.
+		const resolveUrl = (value) => {
+			const url = (value || '').trim();
+			if (!url) return '';
+			if (url.charAt(0) === '#' || url.indexOf('//') === 0 || /^[a-z][a-z0-9+.-]*:/i.test(url)) {
+				return url;
+			}
+			return alistclubOptions.homeUrl.replace(/\/+$/, '') + '/' + url.replace(/^\/+/, '');
+		};
+
+		$flashList.on('input', '.alistclub-flash-button-url', function () {
+			$(this).siblings('.alistclub-flash-button-url-preview').text(resolveUrl(this.value));
+		});
+	}
 })(jQuery);

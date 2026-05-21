@@ -110,6 +110,59 @@ function alistclub_get_banner_settings() {
 }
 
 /**
+ * Whether a link value is a bare site-relative path — i.e. it has no scheme,
+ * is not protocol-relative ("//host") and is not an anchor ("#section").
+ *
+ * @param string $url Link value.
+ * @return bool
+ */
+function alistclub_is_relative_path( $url ) {
+	$url = trim( (string) $url );
+	if ( '' === $url ) {
+		return false;
+	}
+	return '#' !== $url[0] && 0 !== strpos( $url, '//' ) && ! preg_match( '#^[a-z][a-z0-9+.-]*:#i', $url );
+}
+
+/**
+ * Resolve a stored link value to a full URL for output.
+ *
+ * Site-relative paths ("my-account" or "/my-account") resolve against the
+ * site home URL; absolute URLs, protocol-relative URLs and anchors are
+ * returned untouched.
+ *
+ * @param string $url Stored link value.
+ * @return string Full URL, or '' when the value is empty.
+ */
+function alistclub_resolve_url( $url ) {
+	$url = trim( (string) $url );
+	if ( '' === $url ) {
+		return '';
+	}
+	return alistclub_is_relative_path( $url ) ? home_url( '/' . ltrim( $url, '/' ) ) : $url;
+}
+
+/**
+ * Sanitize a user-entered link for storage, preserving relative paths.
+ *
+ * esc_url_raw() alone treats a scheme-less value like "my-account" as a host
+ * and rewrites it to "http://my-account". To avoid that, relative paths are
+ * normalised to a single leading slash first, which esc_url_raw() keeps as-is.
+ *
+ * @param string $url Raw link value from the form.
+ * @return string Sanitized link, safe to store.
+ */
+function alistclub_sanitize_link( $url ) {
+	$url = trim( (string) $url );
+	if ( '' === $url ) {
+		return '';
+	}
+	return alistclub_is_relative_path( $url )
+		? esc_url_raw( '/' . ltrim( $url, '/' ) )
+		: esc_url_raw( $url );
+}
+
+/**
  * Register top-level "A-List Club" admin menu and Banners submenu.
  * Runs at priority 9 so the FAQ CPT (added by core at priority 10) appears
  * between Banners and Settings.
@@ -248,7 +301,7 @@ function alistclub_sanitize_settings_section( $input, &$out ) {
 			$buttons[] = array(
 				'label'  => $label,
 				'color'  => $color,
-				'url'    => isset( $row['url'] ) ? esc_url_raw( trim( $row['url'] ) ) : '',
+				'url'    => isset( $row['url'] ) ? alistclub_sanitize_link( $row['url'] ) : '',
 				'target' => ( isset( $row['target'] ) && '_blank' === $row['target'] ) ? '_blank' : '_self',
 			);
 		}
@@ -289,6 +342,7 @@ function alistclub_options_admin_assets( $hook ) {
 		'removeText'  => __( 'Remove image', 'alistclub' ),
 		'confirmRemove' => __( 'Remove this banner?', 'alistclub' ),
 		'confirmRemoveButton' => __( 'Remove this button?', 'alistclub' ),
+		'homeUrl' => home_url(),
 	) );
 }
 add_action( 'admin_enqueue_scripts', 'alistclub_options_admin_assets' );
@@ -684,7 +738,8 @@ function alistclub_render_flash_button_row( $index, $btn ) {
 			</p>
 			<p>
 				<label><?php esc_html_e( 'URL', 'alistclub' ); ?>
-					<input type="url" name="<?php echo $name; ?>[url]" value="<?php echo esc_attr( $url ); ?>" class="regular-text" placeholder="https://example.com or /shop">
+					<input type="text" name="<?php echo $name; ?>[url]" value="<?php echo esc_attr( $url ); ?>" class="regular-text alistclub-flash-button-url" placeholder="https://example.com, /my-account, or my-account">
+					<span class="alistclub-flash-button-url-preview"><?php echo $url ? esc_html( alistclub_resolve_url( $url ) ) : ''; ?></span>
 				</label>
 			</p>
 			<p class="alistclub-flash-button-inline">
