@@ -43,7 +43,7 @@
 						</li>
 					<?php else : ?>
 						<li class="list-item nav-link">
-							<a href="<?php echo esc_url( home_url( '/login' ) ); ?>" aria-label="<?php esc_attr_e( 'Login', 'alistclub' ); ?>"><i class="fas fa-user" aria-hidden="true"></i></a>
+							<a href="<?php echo esc_url( home_url( '/my-account' ) ); ?>" aria-label="<?php esc_attr_e( 'Login', 'alistclub' ); ?>"><i class="fas fa-user" aria-hidden="true"></i></a>
 						</li>
 					<?php endif; ?>
 					<li class="list-item nav-link">
