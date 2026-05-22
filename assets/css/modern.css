@@ -230,6 +230,10 @@ nav#main-nav .nav__account-wrapper ul.link-list li.list-item.has-submenu ul.sub-
 /* ----------------------------------- *
  * Search overlay (modal)
  * ----------------------------------- */
+/* Search temporarily hidden from the nav — delete this rule to restore. */
+#open-search-overlay {
+	display: none;
+}
 section#search {
 	display: none;
 }
@@ -428,35 +432,36 @@ input[type="text"], input[type="search"], input[type="email"], textarea {
 	flex-basis: 100%;
 	width: 100%;
 }
-.woocommerce-account .woocommerce {
+/* Logged-in dashboard — sidebar nav + content grid. Scoped to
+   .logged-in so it never applies to the logged-out login/register
+   page, whose markup is a single #customer_login block. */
+.woocommerce-account.logged-in .woocommerce {
 	display: grid;
 	grid-template-columns: 240px minmax(0, 1fr);
 	gap: var(--ac-space-xl);
 	align-items: start;
 }
-.woocommerce-account .woocommerce > .woocommerce-notices-wrapper {
+.woocommerce-account.logged-in .woocommerce > .woocommerce-notices-wrapper {
 	grid-column: 1 / -1;
 }
-.woocommerce-account .woocommerce > .woocommerce-MyAccount-navigation {
+.woocommerce-account.logged-in .woocommerce > .woocommerce-MyAccount-navigation {
 	grid-column: 1;
 	width: auto;
 	float: none;
 }
-.woocommerce-account .woocommerce > .woocommerce-MyAccount-content {
+.woocommerce-account.logged-in .woocommerce > .woocommerce-MyAccount-content {
 	grid-column: 2;
 	width: auto;
 	float: none;
 }
 @media (max-width: 899px) {
-	.woocommerce-account .woocommerce > .woocommerce-MyAccount-navigation,
-	.woocommerce-account .woocommerce > .woocommerce-MyAccount-content {
-		grid-column: 1;
-	}
-}
-@media (max-width: 899px) {
-	.woocommerce-account .woocommerce {
+	.woocommerce-account.logged-in .woocommerce {
 		grid-template-columns: 1fr;
 		gap: var(--ac-space-lg);
+	}
+	.woocommerce-account.logged-in .woocommerce > .woocommerce-MyAccount-navigation,
+	.woocommerce-account.logged-in .woocommerce > .woocommerce-MyAccount-content {
+		grid-column: 1;
 	}
 }
 
@@ -553,6 +558,107 @@ nav.woocommerce-MyAccount-navigation ul li[class*="--logout"]:hover > a {
 }
 .woocommerce-MyAccount-content > p:first-child {
 	font-size: 1.05rem;
+}
+
+/* ----------------------------------- *
+ * My Account — logged-out login / register
+ * ----------------------------------- */
+#customer_login {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--ac-space-xl);
+	align-items: start;
+	max-width: 900px;
+	margin: 0 auto;
+}
+/* WooCommerce adds a clearfix ::before/::after to .col2-set. As a grid
+   container those pseudo-elements become grid items and push the real
+   Login/Register columns out of place — so drop them from the grid. */
+#customer_login::before,
+#customer_login::after {
+	display: none;
+}
+@media (max-width: 720px) {
+	#customer_login {
+		grid-template-columns: 1fr;
+		gap: var(--ac-space-lg);
+	}
+}
+#customer_login .col-1,
+#customer_login .col-2 {
+	float: none;
+	width: auto;
+	margin: 0;
+}
+#customer_login h2 {
+	margin: 0 0 var(--ac-space-md);
+	font-size: var(--ac-fs-h3);
+}
+#customer_login form.login,
+#customer_login form.register {
+	margin: 0;
+	padding: var(--ac-space-lg) var(--ac-space-xl);
+	box-sizing: border-box;
+	background: var(--ac-color-surface);
+	border: 1px solid var(--ac-color-border);
+	border-radius: var(--ac-radius);
+	box-shadow: var(--ac-shadow-md);
+}
+@media (max-width: 600px) {
+	#customer_login form.login,
+	#customer_login form.register {
+		padding: var(--ac-space-lg) var(--ac-space-md);
+	}
+}
+#customer_login .form-row {
+	margin: 0 0 var(--ac-space-md);
+}
+#customer_login label:not(.woocommerce-form__label-for-checkbox) {
+	display: block;
+	margin-bottom: var(--ac-space-xs);
+	font-weight: 500;
+}
+#customer_login input.input-text {
+	width: 100%;
+	box-sizing: border-box;
+	min-height: var(--ac-tap-target);
+	padding: 0.6rem 0.75rem;
+	background: var(--ac-color-surface);
+	border: 1px solid var(--ac-color-border);
+	border-radius: var(--ac-radius);
+	transition: border-color var(--ac-transition), box-shadow var(--ac-transition);
+}
+#customer_login input.input-text:focus {
+	outline: none;
+	border-color: var(--ac-color-fg);
+	box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+}
+#customer_login .password-input {
+	display: block;
+	position: relative;
+}
+#customer_login .woocommerce-form-login__rememberme {
+	display: flex;
+	align-items: center;
+	gap: var(--ac-space-sm);
+	font-weight: 400;
+}
+#customer_login .woocommerce-form-login__rememberme .woocommerce-form__input-checkbox {
+	width: auto;
+	min-height: 0;
+	margin: 0;
+}
+#customer_login .button {
+	width: 100%;
+}
+#customer_login .woocommerce-LostPassword {
+	margin: var(--ac-space-md) 0 0;
+	font-size: 0.9rem;
+}
+#customer_login .woocommerce-privacy-policy-text {
+	margin-top: var(--ac-space-sm);
+	font-size: 0.85rem;
+	color: var(--ac-color-muted);
 }
 
 /* ----------------------------------- *
