@@ -10,3 +10,8 @@ This theme is a redesign of a very old A-List Club WordPress theme. Use the exis
 
 - Do **not** add `Co-Authored-By: Claude…`, `Generated with Claude Code`, or any other AI-attribution lines to commit messages or PR descriptions.
 - Keep commit messages focused on the change itself.
+
+## Pushing
+
+- **Never** `git push` unless I explicitly ask you to. Every push triggers deploy actions, and I need a chance to verify the changes locally first.
+- Committing without pushing is fine when I ask for a commit. If I say "commit and push", that's explicit permission for that one push only — it does not authorise future pushes.
