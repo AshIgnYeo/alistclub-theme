@@ -56,3 +56,15 @@ add_filter('woocommerce_paypal_payments_single_product_renderer_hook', function 
 });
 add_filter('woocommerce_paypal_payments_product_buttons_disabled', '__return_true');
 add_filter('woocommerce_paypal_payments_product_buttons_paylater_disabled', '__return_true');
+
+/**
+ * Disable the PayPal "simulate cart" AJAX endpoint.
+ *
+ * The smart-button JS loads on product pages even when the button itself
+ * is hidden, and fires `ppc-simulate-cart` to compute totals. For variable
+ * products with no variation selected, that calls WC_Cart::add_to_cart()
+ * which adds a "Please choose product options…" notice to the session —
+ * surfacing on the next non-AJAX page render. We don't show the smart
+ * button on product pages, so the simulation isn't needed anywhere.
+ */
+add_filter('woocommerce_paypal_payments_simulate_cart_enabled', '__return_false');
