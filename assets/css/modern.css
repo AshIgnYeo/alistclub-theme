@@ -1153,6 +1153,41 @@ section#store-area .store__products-wrapper #store__products .store__error {
 	color: #666;
 }
 
+/* Infinite scroll: auto-loads as it nears the viewport; also clickable. */
+section#store-area .store__more {
+	display: flex;
+	justify-content: center;
+	padding: 28px 0 8px;
+}
+
+section#store-area .store__more[hidden] {
+	display: none;
+}
+
+section#store-area .store__more-btn {
+	padding: 10px 28px;
+	background: #fff;
+	color: #000;
+	border: 1px solid #000;
+	border-radius: 0;
+	font-size: 0.8rem;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+section#store-area .store__more-btn:hover:not(:disabled) {
+	background: #000;
+	color: #fff;
+}
+
+section#store-area .store__more-btn:disabled {
+	opacity: 0.6;
+	cursor: progress;
+}
+
 /* ---------- Sidebar: sort + filter groups ---------- */
 
 #sidebar .sidebar-group {
