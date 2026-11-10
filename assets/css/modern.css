@@ -299,23 +299,25 @@ button {
 /* ----------------------------------- *
  * Homepage banner carousel
  * ----------------------------------- */
+/*
+ * Banners are shown whole, at their own aspect ratio — never cropped, since
+ * the artwork usually has headlines and buttons baked into it. Slides stack
+ * in a single grid cell, so the track is as tall as the tallest banner and
+ * shorter ones sit vertically centred.
+ */
 .banner-carousel {
 	position: relative;
 	overflow: hidden;
 	background: var(--ac-color-fg);
-	max-height: 50vh;
 }
 .banner-carousel__track {
-	position: relative;
+	display: grid;
 	width: 100%;
-	aspect-ratio: 8 / 3;
-}
-@media (max-width: 739px) {
-	.banner-carousel__track { aspect-ratio: 4 / 3; }
 }
 .banner-carousel__slide {
-	position: absolute;
-	inset: 0;
+	grid-area: 1 / 1;
+	align-self: center;
+	position: relative;
 	opacity: 0;
 	transition: opacity 0.6s ease;
 	pointer-events: none;
@@ -329,10 +331,9 @@ button {
 .banner-carousel__link {
 	display: block;
 	width: 100%;
-	height: 100%;
 }
 .banner-carousel__slide img {
-	object-fit: cover;
+	height: auto;
 }
 .banner-carousel__link {
 	text-decoration: none;

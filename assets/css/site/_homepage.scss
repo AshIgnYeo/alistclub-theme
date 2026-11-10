@@ -5,16 +5,6 @@ Author: AshIgn
 Description: Styles for front-page.php
 */
 
-section#banner-carousel {
-  max-height: 40vh;
-  overflow: hidden;
-  @extend #flex-center;
-
-  @include desktop {
-    max-height: 50vh;
-  }
-}
-
 section#store-area {
   padding-top: 20px;
   background-color: #fff;
