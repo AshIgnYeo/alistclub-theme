@@ -2,12 +2,19 @@
 /**
  * Custom REST products endpoint: /wp-json/alistclub/v1/products
  *
- * Powers the homepage Store grid. Supports sort + brand/category filters.
+ * Powers the homepage Store grid. Supports sort + brand/category filters,
+ * search, and paging (the grid loads further pages as the visitor scrolls).
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+/**
+ * Products per batch in the Store grid: the homepage's first render and
+ * every REST page after it.
+ */
+define( 'ALISTCLUB_STORE_PER_PAGE', 12 );
 
 add_action( 'rest_api_init', 'alistclub_register_products_route' );
 
@@ -43,6 +50,10 @@ function alistclub_register_products_route() {
 					'required'          => false,
 					'sanitize_callback' => 'sanitize_text_field',
 				),
+				'page'       => array(
+					'required'          => false,
+					'sanitize_callback' => 'absint',
+				),
 			),
 		)
 	);
@@ -67,64 +78,91 @@ function alistclub_brand_taxonomy() {
 	return '';
 }
 
-function alistclub_products_results( WP_REST_Request $request ) {
-	if ( ! function_exists( 'wc_get_product' ) ) {
-		return rest_ensure_response( array( 'products' => array() ) );
-	}
-
-	$orderby    = (string) $request->get_param( 'orderby' );
-	$orderby    = $orderby ? $orderby : 'all';
-	$brands     = (array) $request->get_param( 'brands' );
-	$categories = (array) $request->get_param( 'categories' );
-	$search     = trim( (string) $request->get_param( 'search' ) );
-	$limit      = (int) $request->get_param( 'limit' );
-	if ( $limit < 1 || $limit > 60 ) {
-		$limit = $search !== '' ? 60 : 12;
-	}
+/**
+ * WP_Query args for the Store grid. Shared by the homepage's server-rendered
+ * first page and the REST endpoint, so REST page 2 continues exactly where
+ * the homepage's page 1 left off.
+ *
+ * @param array $opts orderby, brands, categories, search, page, per_page.
+ * @return array
+ */
+function alistclub_store_query_args( $opts = array() ) {
+	$opts = wp_parse_args(
+		$opts,
+		array(
+			'orderby'    => 'all',
+			'brands'     => array(),
+			'categories' => array(),
+			'search'     => '',
+			'page'       => 1,
+			'per_page'   => ALISTCLUB_STORE_PER_PAGE,
+		)
+	);
 
 	$args = array(
 		'post_type'           => 'product',
-		'posts_per_page'      => $limit,
+		'posts_per_page'      => (int) $opts['per_page'],
+		'paged'               => max( 1, (int) $opts['page'] ),
 		'post_status'         => 'publish',
 		'ignore_sticky_posts' => true,
-		'no_found_rows'       => true,
 	);
 
-	if ( $search !== '' ) {
-		$args['s'] = $search;
+	if ( $opts['search'] !== '' ) {
+		$args['s'] = $opts['search'];
 	}
 
-	switch ( $orderby ) {
+	// Each order ends on ID so ties (e.g. many products with 0 sales) sort
+	// the same way on every request; otherwise pages can repeat or skip items.
+	switch ( $opts['orderby'] ) {
 		case 'popularity':
 			$args['meta_key'] = 'total_sales';
-			$args['orderby']  = 'meta_value_num';
-			$args['order']    = 'DESC';
+			$args['orderby']  = array( 'meta_value_num' => 'DESC', 'ID' => 'DESC' );
 			break;
 		case 'date':
-			$args['orderby'] = 'date';
-			$args['order']   = 'DESC';
+			$args['orderby'] = array( 'date' => 'DESC', 'ID' => 'DESC' );
 			break;
 		default:
-			$args['orderby'] = array( 'menu_order' => 'ASC', 'title' => 'ASC' );
+			$args['orderby'] = array( 'menu_order' => 'ASC', 'title' => 'ASC', 'ID' => 'ASC' );
 			break;
 	}
 
 	$tax_query = array();
 	$brand_tax = alistclub_brand_taxonomy();
-	if ( $brand_tax && ! empty( $brands ) ) {
+	if ( $brand_tax && ! empty( $opts['brands'] ) ) {
 		$tax_query[] = array(
 			'taxonomy' => $brand_tax,
 			'field'    => 'slug',
-			'terms'    => $brands,
+			'terms'    => $opts['brands'],
 		);
 	}
-	if ( ! empty( $categories ) ) {
+	if ( ! empty( $opts['categories'] ) ) {
 		$tax_query[] = array(
 			'taxonomy' => 'product_cat',
 			'field'    => 'slug',
-			'terms'    => $categories,
+			'terms'    => $opts['categories'],
 		);
 	}
+
+	// Leave out products WC_Product::is_visible() would hide (catalog
+	// visibility, and out-of-stock when the store hides those) in the query
+	// itself, so every page is full and the page count is accurate.
+	if ( function_exists( 'wc_get_product_visibility_term_ids' ) ) {
+		$visibility = wc_get_product_visibility_term_ids();
+		$hidden     = array( $visibility['exclude-from-catalog'] );
+		if ( 'yes' === get_option( 'woocommerce_hide_out_of_stock_items' ) ) {
+			$hidden[] = $visibility['outofstock'];
+		}
+		$hidden = array_filter( $hidden );
+		if ( $hidden ) {
+			$tax_query[] = array(
+				'taxonomy' => 'product_visibility',
+				'field'    => 'term_taxonomy_id',
+				'terms'    => $hidden,
+				'operator' => 'NOT IN',
+			);
+		}
+	}
+
 	if ( count( $tax_query ) > 1 ) {
 		$tax_query['relation'] = 'AND';
 	}
@@ -132,8 +170,36 @@ function alistclub_products_results( WP_REST_Request $request ) {
 		$args['tax_query'] = $tax_query;
 	}
 
-	$query    = new WP_Query( $args );
-	$products = array();
+	return $args;
+}
+
+function alistclub_products_results( WP_REST_Request $request ) {
+	if ( ! function_exists( 'wc_get_product' ) ) {
+		return rest_ensure_response( array( 'products' => array(), 'page' => 1, 'total_pages' => 0 ) );
+	}
+
+	$orderby = (string) $request->get_param( 'orderby' );
+	$page    = max( 1, (int) $request->get_param( 'page' ) );
+	$limit   = (int) $request->get_param( 'limit' );
+	if ( $limit < 1 || $limit > 60 ) {
+		$limit = ALISTCLUB_STORE_PER_PAGE;
+	}
+
+	$query = new WP_Query(
+		alistclub_store_query_args(
+			array(
+				'orderby'    => $orderby ? $orderby : 'all',
+				'brands'     => (array) $request->get_param( 'brands' ),
+				'categories' => (array) $request->get_param( 'categories' ),
+				'search'     => trim( (string) $request->get_param( 'search' ) ),
+				'page'       => $page,
+				'per_page'   => $limit,
+			)
+		)
+	);
+
+	$brand_tax = alistclub_brand_taxonomy();
+	$products  = array();
 
 	while ( $query->have_posts() ) {
 		$query->the_post();
@@ -185,5 +251,11 @@ function alistclub_products_results( WP_REST_Request $request ) {
 	}
 	wp_reset_postdata();
 
-	return rest_ensure_response( array( 'products' => $products ) );
+	return rest_ensure_response(
+		array(
+			'products'    => $products,
+			'page'        => $page,
+			'total_pages' => (int) $query->max_num_pages,
+		)
+	);
 }

@@ -191,8 +191,19 @@
 	}
 
 	/**
-	 * Homepage Store grid — sort, filter (server), and live name/brand search (client).
+	 * Store grid (homepage + shop archives) — sort, filter and search (server),
+	 * with infinite scroll.
+	 *
+	 * Further pages come from one of two places:
+	 * - the products REST endpoint, by page number (homepage, and any archive
+	 *   once the visitor changes sort / filter / search);
+	 * - WooCommerce's own next archive page, read from its pagination links,
+	 *   while an archive is still showing its original query (keeps category,
+	 *   ordering and page size exactly as WooCommerce has them).
 	 */
+	const MORE_LABEL  = 'Load more products';
+	const RETRY_LABEL = 'Couldn’t load more products. Try again';
+
 	class Store {
 		constructor() {
 			this.grid    = $('#store__products');
@@ -204,9 +215,79 @@
 			if (!this.grid) return;
 
 			this.controller = null;
+			this.loading = false;
+			this.autoPaused = false;
 			this.searchTimer = null;
 			this.filterTimer = null;
+
+			// The query the grid is currently showing; later pages must use
+			// the same one, even if the inputs have changed since.
+			this.query = new URLSearchParams({ orderby: this.grid.dataset.sort || 'all' });
+			this.page = 1;
+			this.totalPages = parseInt(this.grid.dataset.totalPages, 10) || 1;
+			this.nextUrl = null;
+
+			// Archive pages: take over WooCommerce's numbered pagination.
+			const pager = $('.woocommerce-pagination');
+			if (pager) {
+				const next = $('a.next', pager);
+				this.nextUrl = next ? this.sameOrigin(next.getAttribute('href'), location.href) : null;
+				pager.remove();
+			}
+
+			this.buildMore();
 			this.bind();
+			this.updateMore();
+		}
+
+		buildMore() {
+			this.more = document.createElement('div');
+			this.more.className = 'store__more';
+			this.more.innerHTML = `<button type="button" class="store__more-btn">${escapeHTML(MORE_LABEL)}</button>`;
+			this.moreBtn = $('button', this.more);
+			this.grid.after(this.more);
+
+			this.moreBtn.addEventListener('click', () => {
+				this.autoPaused = false;
+				this.loadMore({ focusNew: true });
+			});
+
+			// Auto-load when the button comes within reach of the viewport.
+			if ('IntersectionObserver' in window) {
+				this.observer = new IntersectionObserver((entries) => {
+					if (!this.autoPaused && entries.some((e) => e.isIntersecting)) this.loadMore();
+				}, { rootMargin: '0px 0px 600px 0px' });
+				this.observer.observe(this.more);
+			}
+		}
+
+		hasMore() {
+			return Boolean(this.nextUrl) || this.page < this.totalPages;
+		}
+
+		updateMore() {
+			this.more.hidden = !this.hasMore();
+			this.moreBtn.disabled = this.loading;
+			this.moreBtn.textContent = this.loading ? 'Loading…' : (this.autoPaused ? RETRY_LABEL : MORE_LABEL);
+		}
+
+		/**
+		 * Re-observing makes the observer report the button's current state,
+		 * so a batch that didn't fill the screen is followed by the next one.
+		 */
+		recheck() {
+			if (!this.observer) return;
+			this.observer.unobserve(this.more);
+			this.observer.observe(this.more);
+		}
+
+		sameOrigin(href, base) {
+			try {
+				const url = new URL(href, base);
+				return url.origin === location.origin ? url.href : null;
+			} catch (e) {
+				return null;
+			}
 		}
 
 		bind() {
@@ -252,38 +333,117 @@
 				.map((i) => i.value);
 		}
 
-		async fetchProducts() {
+		currentQuery() {
+			const params = new URLSearchParams();
+			params.set('orderby', this.activeSort());
+			this.checkedFilters('brands').forEach((b) => params.append('brands[]', b));
+			this.checkedFilters('categories').forEach((c) => params.append('categories[]', c));
+			const search = (this.search ? this.search.value : '').trim();
+			if (search) params.set('search', search);
+			return params;
+		}
+
+		async fetchRestPage(page, signal) {
 			const base = (window.localData && window.localData.productsUrl)
 				? window.localData.productsUrl
 				: `${(window.localData && window.localData.siteUrl) || ''}/wp-json/alistclub/v1/products`;
-			const params = new URLSearchParams();
-			params.set('orderby', this.activeSort());
-			const brands = this.checkedFilters('brands');
-			const cats   = this.checkedFilters('categories');
-			brands.forEach((b) => params.append('brands[]', b));
-			cats.forEach((c) => params.append('categories[]', c));
-			const query = (this.search ? this.search.value : '').trim();
-			if (query) params.set('search', query);
+			// Merge into the base URL's own query (it is ?rest_route=… without pretty permalinks).
+			const url = new URL(base, location.href);
+			this.query.forEach((value, key) => url.searchParams.append(key, value));
+			if (page > 1) url.searchParams.set('page', String(page));
 
+			const res = await fetch(url.href, {
+				signal,
+				headers: { 'X-WP-Nonce': (window.localData && window.localData.restNonce) || '' }
+			});
+			if (!res.ok) throw new Error('Products request failed');
+			return res.json();
+		}
+
+		async fetchArchivePage(url, signal) {
+			const res = await fetch(url, { signal });
+			if (!res.ok) throw new Error('Archive page request failed');
+			const doc  = new DOMParser().parseFromString(await res.text(), 'text/html');
+			const next = $('.woocommerce-pagination a.next', doc);
+			return {
+				items: $$('#store__products .product-item', doc),
+				next: next ? this.sameOrigin(next.getAttribute('href'), url) : null,
+			};
+		}
+
+		/**
+		 * Starts a request, cancelling any in flight. `task` gets the abort
+		 * signal; state is only touched if this is still the latest request.
+		 */
+		async run(task, onError) {
 			if (this.controller) this.controller.abort();
-			this.controller = new AbortController();
-			this.grid.classList.add('is-loading');
+			const controller = this.controller = new AbortController();
+			this.loading = true;
+			this.updateMore();
 
 			try {
-				const res = await fetch(`${base}?${params.toString()}`, {
-					signal: this.controller.signal,
-					headers: { 'X-WP-Nonce': (window.localData && window.localData.restNonce) || '' }
-				});
-				if (!res.ok) throw new Error('Products request failed');
-				const data = await res.json();
-				this.render(data.products || []);
+				await task(controller.signal);
 			} catch (err) {
-				if (err.name !== 'AbortError') {
-					this.grid.innerHTML = `<p class="store__error">${escapeHTML('Could not load products. Please try again.')}</p>`;
-				}
+				if (err.name !== 'AbortError' && this.controller === controller) onError(err);
 			} finally {
-				this.grid.classList.remove('is-loading');
+				if (this.controller === controller) {
+					this.controller = null;
+					this.loading = false;
+					this.grid.classList.remove('is-loading');
+					this.updateMore();
+					this.recheck();
+				}
 			}
+		}
+
+		/**
+		 * Sort / filter / search changed: replace the grid with page 1.
+		 */
+		fetchProducts() {
+			this.query = this.currentQuery();
+			this.page = 1;
+			this.totalPages = 1;
+			this.nextUrl = null;
+			this.autoPaused = false;
+			this.grid.classList.add('is-loading');
+
+			return this.run(async (signal) => {
+				const data = await this.fetchRestPage(1, signal);
+				this.totalPages = data.total_pages || 1;
+				this.render(data.products || []);
+			}, () => {
+				this.grid.innerHTML = `<p class="store__error">${escapeHTML('Could not load products. Please try again.')}</p>`;
+			});
+		}
+
+		/**
+		 * Append the next page of the current query.
+		 */
+		loadMore({ focusNew = false } = {}) {
+			if (this.loading || !this.hasMore()) return;
+			const firstNew = this.grid.children.length;
+
+			return this.run(async (signal) => {
+				if (this.nextUrl) {
+					const { items, next } = await this.fetchArchivePage(this.nextUrl, signal);
+					this.grid.append(...items);
+					this.nextUrl = next;
+				} else {
+					const data = await this.fetchRestPage(this.page + 1, signal);
+					this.grid.insertAdjacentHTML('beforeend', (data.products || []).map((p) => this.tile(p)).join(''));
+					this.page += 1;
+					this.totalPages = data.total_pages || this.page;
+				}
+				// Keyboard users who pressed the button continue from the first new product.
+				if (focusNew) {
+					const link = this.grid.children[firstNew] && $('a', this.grid.children[firstNew]);
+					if (link) link.focus();
+				}
+			}, () => {
+				// Stop auto-loading so a failing request isn't retried in a loop;
+				// the button stays for a manual retry.
+				this.autoPaused = true;
+			});
 		}
 
 		render(products) {
