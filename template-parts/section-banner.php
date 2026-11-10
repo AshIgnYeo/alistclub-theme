@@ -33,7 +33,7 @@ $slide_count = count( $banners );
 			if ( ! $desktop_url ) {
 				continue;
 			}
-			$mobile_url = $mobile_id ? wp_get_attachment_image_url( $mobile_id, 'large' ) : '';
+			$mobile_src = $mobile_id ? wp_get_attachment_image_src( $mobile_id, 'large' ) : false;
 
 			$meta   = wp_get_attachment_metadata( $image_id );
 			$width  = ! empty( $meta['width'] ) ? (int) $meta['width'] : 1600;
@@ -58,8 +58,14 @@ $slide_count = count( $banners );
 			$sizes  = '(max-width: 739px) 100vw, 100vw';
 
 			$picture  = '<picture>';
-			if ( $mobile_url ) {
-				$picture .= '<source media="(max-width: 739px)" srcset="' . esc_url( $mobile_url ) . '">';
+			if ( $mobile_src ) {
+				// Width/height let the browser reserve the mobile image's own shape before it loads.
+				$picture .= sprintf(
+					'<source media="(max-width: 739px)" srcset="%1$s" width="%2$d" height="%3$d">',
+					esc_url( $mobile_src[0] ),
+					(int) $mobile_src[1],
+					(int) $mobile_src[2]
+				);
 			}
 			$picture .= sprintf(
 				'<img src="%1$s"%2$s sizes="%3$s" alt="%4$s" width="%5$d" height="%6$d" %7$s decoding="async">',
